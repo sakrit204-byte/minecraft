@@ -66,6 +66,62 @@ public sealed class DensityField
     /// 1,024 column samples instead of 32,768, which is the difference between meshing
     /// being viable and not.
     /// </summary>
+    /// <summary>
+    /// Evaluates the field for a chunk whose samples are <paramref name="spacing"/> metres apart,
+    /// skipping every feature too small for that spacing to represent.
+    /// <para>
+    /// This is what makes a full-scale world affordable. A chunk four levels out has 8 m voxels; its
+    /// fine detail noise has a 17 m wavelength and its caves are two to four metres across, so both
+    /// are pure cost with no visible effect. Dropping them makes a distant chunk roughly five times
+    /// cheaper to generate than a near one, which is the difference between a horizon that streams in
+    /// and one that never arrives.
+    /// </para>
+    /// <para>
+    /// The result deliberately differs from the full-detail field. That is safe because level of
+    /// detail is a rendering concern: physics, mining and saving all run against LOD 0.
+    /// </para>
+    /// </summary>
+    public double SampleColumnForSpacing(in ColumnSample column, double x, double y, double z, double spacing)
+    {
+        if (y <= WorldBottom) return -64.0;
+        if (y >= WorldTop) return 64.0;
+
+        double density = y - column.BaseHeight;
+        if (density > MaxDeformation) return density;
+
+        // Overhangs survive to fairly coarse levels: they are tens of metres across and define the
+        // silhouette of distant mountains, which is exactly what a far chunk is for.
+        if (spacing <= 4.0)
+        {
+            double overhangStrength = LandformFields.OverhangStrength(column.Erosion);
+            if (overhangStrength > 0.0)
+            {
+                double nearSurface = Math.Clamp(1.0 - (column.BaseHeight - y) / 120.0, 0.0, 1.0);
+                if (nearSurface > 0.0)
+                {
+                    density -= Fractal.Fbm3(_overhang, x / 74.0, y / 30.0, z / 74.0, 3)
+                               * overhangStrength * nearSurface;
+                }
+            }
+        }
+
+        // Fine detail has a 17 m wavelength; below two samples per wavelength it only aliases.
+        if (spacing <= 2.0)
+        {
+            density -= Fractal.Fbm3(_detail, x / 17.0, y / 17.0, z / 17.0, 2) * 1.8;
+        }
+
+        // Caves are two to four metres across. Past 2 m spacing they cannot be resolved, and carving
+        // them anyway punches noise through the surface of distant hills.
+        if (spacing <= 2.0)
+        {
+            double cavity = _caves.Distance(x, y, z, column.BaseHeight);
+            return Math.Max(density, -cavity);
+        }
+
+        return density;
+    }
+
     public double SampleColumn(in ColumnSample column, double x, double y, double z)
     {
         // Hard caps. Bedrock at the bottom keeps the player in the world; the ceiling

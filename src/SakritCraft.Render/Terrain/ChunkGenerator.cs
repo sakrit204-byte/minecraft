@@ -241,7 +241,7 @@ public sealed class ChunkGenerator : IDisposable
                 {
                     double wx = (latticeX + x) * spacing;
                     ref readonly var column = ref columns[z * dim + x];
-                    double d = _field.SampleColumn(in column, wx, wy, wz);
+                    double d = _field.SampleColumnForSpacing(in column, wx, wy, wz, spacing);
                     volume[x, y, z] = (float)d;
                     if (d < 0.0) anySolid = true; else anyAir = true;
                     volume.SetMaterial(x, y, z, MaterialFor(in column, wy, d));

@@ -184,6 +184,18 @@ public sealed unsafe class TerrainRenderer : IDisposable
     /// <paramref name="retireAfter"/>, the last submission that may draw it. This is the hook dynamic
     /// streaming will call as chunks leave the octree.
     /// </summary>
+    /// <summary>Whether this chunk is already requested, generating, uploading or resident.</summary>
+    public bool IsKnown(ChunkCoord coord) => _chunks.ContainsKey(coord);
+
+    /// <summary>Collects every known chunk that is not in the wanted set, for eviction.</summary>
+    public void CollectResident(List<ChunkCoord> into, HashSet<ChunkCoord> wanted)
+    {
+        foreach (var pair in _chunks)
+        {
+            if (!wanted.Contains(pair.Key)) into.Add(pair.Key);
+        }
+    }
+
     public bool Release(ChunkCoord coord, ulong retireAfter)
     {
         if (!_chunks.TryGetValue(coord, out var record) || record.State != ChunkState.Resident)

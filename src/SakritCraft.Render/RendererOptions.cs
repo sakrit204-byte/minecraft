@@ -75,6 +75,15 @@ public sealed class RendererOptions
     /// </summary>
     public uint ShadowMapResolution { get; init; } = 2048;
 
+    /// <summary>
+    /// Coarsest terrain level of detail. Each level doubles the chunk size, so level 6 chunks are
+    /// 1024 m across and the outermost ring reaches roughly 8 km.
+    /// </summary>
+    public int MaxLod { get; init; } = 6;
+
+    /// <summary>Half-extent of each level-of-detail ring, in chunks of that level.</summary>
+    public int RingHalfExtent { get; init; } = 8;
+
     internal void Validate()
     {
         if (FramesInFlight is < 2 or > 3)

@@ -106,6 +106,8 @@ public sealed unsafe class Renderer : IDisposable
     private readonly SakritCraft.Render.Textures.TerrainMaterialTextures _materials;
     private readonly SakritCraft.Render.Shadows.ShadowRenderer _shadows;
 
+    private readonly SakritCraft.Render.Terrain.TerrainStreamer _streamer;
+
     /// <summary>Cached so the cascade loop allocates no closure per frame.</summary>
     private readonly Action<CommandBuffer, System.Numerics.Matrix4x4, Pipeline> _drawShadowCasters;
     private readonly TerrainRenderer _terrain;
@@ -226,7 +228,14 @@ public sealed unsafe class Renderer : IDisposable
         _drawShadowCasters = (c, matrix, pipeline) => _terrain.DrawDepth(c, Camera, matrix, pipeline);
 
         PlaceCameraAtStart();
-        int queued = _terrain.RequestStartupRegion(Camera.Position);
+        _streamer = new SakritCraft.Render.Terrain.TerrainStreamer(_terrain, _terrain.Field)
+        {
+            MaxLod = options.MaxLod,
+            RingHalfExtent = options.RingHalfExtent,
+        };
+        // Seed residency before the first frame so the world is not empty on the opening view.
+        _streamer.Update(Camera.Position, 0);
+        int queued = _streamer.PendingCount + _streamer.DesiredCount;
 
         _timing = new FrameTiming(options.TimingReportInterval);
         _pacer = new FramePacer(options.TargetFrameRate);
@@ -268,6 +277,13 @@ public sealed unsafe class Renderer : IDisposable
         if (_timestamps.TryRead(frame.Index, out double gpuMs))
         {
             _timing.RecordGpuTime(gpuMs);
+        }
+
+        // Residency follows the camera: request what has come into range, evict what has left.
+        _streamer.Update(Camera.Position, _timelineValue);
+        if (_streamer.Stale.Count > 0)
+        {
+            foreach (var coord in _streamer.Stale) _terrain.Release(coord, _timelineValue);
         }
 
         // Uploads first so a mesh finished this frame is on its way to the GPU while we record.
