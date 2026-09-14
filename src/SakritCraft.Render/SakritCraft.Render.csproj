@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SakritCraft.Core\SakritCraft.Core.csproj" />
+    <ProjectReference Include="..\SakritCraft.World\SakritCraft.World.csproj" />
+    <ProjectReference Include="..\SakritCraft.Mesh\SakritCraft.Mesh.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Input" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Shaderc" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

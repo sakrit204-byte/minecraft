@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SakritCraft.Core\SakritCraft.Core.csproj" />
+    <ProjectReference Include="..\SakritCraft.World\SakritCraft.World.csproj" />
+    <ProjectReference Include="..\SakritCraft.Content\SakritCraft.Content.csproj" />
+    <ProjectReference Include="..\SakritCraft.Physics\SakritCraft.Physics.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

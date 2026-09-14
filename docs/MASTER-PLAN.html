@@ -1,0 +1,1254 @@
+<title>SakritCraft Master Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ─── tokens: light is the base, both dark states redefine only values ─── */
+:root {
+  --bg:        #EDEFF2;
+  --surface:   #FFFFFF;
+  --surface-2: #F5F7F9;
+  --ink:       #11161C;
+  --ink-2:     #4B5563;
+  --ink-3:     #77838F;
+  --line:      #D3D9E0;
+  --line-2:    #E4E9ED;
+  --amber:     #9C5410;
+  --amber-bg:  #F6E9D6;
+  --teal:      #0A6558;
+  --teal-bg:   #D9EBE7;
+  --rust:      #8F3517;
+  --rust-bg:   #F7E2DA;
+  --code-bg:   #F1F4F7;
+  --shadow:    0 1px 2px rgba(17,22,28,.05), 0 8px 24px -12px rgba(17,22,28,.14);
+  --col:       68ch;
+  --wide:      1080px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #12161B;
+    --surface:   #191F26;
+    --surface-2: #1E252D;
+    --ink:       #E2E7EC;
+    --ink-2:     #9DABB9;
+    --ink-3:     #6E7C8A;
+    --line:      #2A323C;
+    --line-2:    #222A33;
+    --amber:     #E8A44C;
+    --amber-bg:  #2B2317;
+    --teal:      #4EC0AC;
+    --teal-bg:   #142E2A;
+    --rust:      #E07A5F;
+    --rust-bg:   #2E1C17;
+    --code-bg:   #151B22;
+    --shadow:    0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #12161B;
+  --surface:   #191F26;
+  --surface-2: #1E252D;
+  --ink:       #E2E7EC;
+  --ink-2:     #9DABB9;
+  --ink-3:     #6E7C8A;
+  --line:      #2A323C;
+  --line-2:    #222A33;
+  --amber:     #E8A44C;
+  --amber-bg:  #2B2317;
+  --teal:      #4EC0AC;
+  --teal-bg:   #142E2A;
+  --rust:      #E07A5F;
+  --rust-bg:   #2E1C17;
+  --code-bg:   #151B22;
+  --shadow:    0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Newsreader", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.68;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── type roles ─── */
+.disp {
+  font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  font-variation-settings: "wdth" 112;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.mono, code, pre, .num {
+  font-family: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-variant-ligatures: none;
+}
+.tab { font-variant-numeric: tabular-nums; }
+
+/* ─── shell ─── */
+.wrap {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding-inline: 22px;
+}
+.col { max-width: var(--col); }
+
+/* ─── masthead ─── */
+header.mast {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.mast-inner { padding-block: 54px 40px; }
+.eyebrow {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 18px;
+}
+h1.title {
+  font-size: clamp(2.7rem, 8.5vw, 5rem);
+  text-transform: uppercase;
+  margin: 0;
+}
+.deck {
+  margin: 20px 0 0;
+  max-width: 62ch;
+  font-size: 1.16rem;
+  color: var(--ink-2);
+  line-height: 1.58;
+}
+.deck strong { color: var(--ink); font-weight: 600; }
+
+.decisions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-top: 36px;
+}
+.dec { background: var(--surface); padding: 16px 18px; }
+.dec dt {
+  font-family: "Archivo", sans-serif;
+  font-size: .65rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-bottom: 7px;
+}
+.dec dd {
+  margin: 0;
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: .97rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+/* ─── nav ─── */
+nav.parts {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.parts-scroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-block: 9px;
+  scrollbar-width: thin;
+}
+.parts-scroll a {
+  flex: none;
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-decoration: none;
+  padding: 5px 9px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.parts-scroll a:hover, .parts-scroll a:focus-visible { color: var(--amber); background: var(--amber-bg); }
+
+/* ─── parts ─── */
+main { padding-block: 8px 90px; }
+section.part {
+  padding-block: 52px 8px;
+  border-top: 1px solid var(--line-2);
+}
+section.part:first-of-type { border-top: 0; }
+.part-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 10px; }
+.part-num {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: .8rem;
+  color: var(--amber);
+  letter-spacing: .06em;
+  flex: none;
+  padding-top: .35em;
+}
+h2 { font-size: clamp(1.55rem, 3.6vw, 2.15rem); margin: 0; }
+h2.disp { font-variation-settings: "wdth" 108; font-weight: 700; }
+.standfirst {
+  color: var(--ink-2);
+  font-size: 1.06rem;
+  margin: 0 0 26px;
+  max-width: var(--col);
+}
+
+h3 {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 104;
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: .005em;
+  margin: 34px 0 10px;
+  color: var(--ink);
+}
+h4 {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: .74rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 26px 0 8px;
+}
+p { margin: 0 0 15px; max-width: var(--col); }
+ul, ol { margin: 0 0 15px; padding-left: 1.15em; max-width: var(--col); }
+li { margin-bottom: 7px; }
+li::marker { color: var(--ink-3); }
+b, strong { font-weight: 600; color: var(--ink); }
+a { color: var(--amber); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 2px; }
+
+code {
+  font-size: .86em;
+  background: var(--code-bg);
+  border: 1px solid var(--line-2);
+  padding: .08em .34em;
+  border-radius: 3px;
+  color: var(--ink);
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--teal);
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: .8rem;
+  line-height: 1.62;
+  margin: 0 0 18px;
+  max-width: var(--wide);
+}
+pre code { background: none; border: 0; padding: 0; font-size: 1em; }
+pre .c { color: var(--ink-3); }
+pre .k { color: var(--amber); }
+
+/* ─── tables ─── */
+.tscroll { overflow-x: auto; margin: 0 0 20px; border: 1px solid var(--line); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .87rem; min-width: 460px; }
+th {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: .66rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--ink-3);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+td { padding: 9px 14px; border-bottom: 1px solid var(--line-2); vertical-align: top; line-height: 1.5; }
+tbody tr:last-child td { border-bottom: 0; }
+td.mono, th.mono { font-size: .79rem; }
+
+/* ─── callout ─── */
+.note {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--amber);
+  background: var(--surface);
+  padding: 16px 18px;
+  margin: 0 0 20px;
+  max-width: var(--wide);
+  box-shadow: var(--shadow);
+}
+.note h4 { margin-top: 0; color: var(--amber); }
+.note p:last-child, .note ul:last-child { margin-bottom: 0; }
+.note.key { border-left-color: var(--teal); }
+.note.key h4 { color: var(--teal); }
+
+/* ─── chips ─── */
+.chip {
+  display: inline-block;
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-size: .63rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.chip.ok   { background: var(--teal-bg);  color: var(--teal); }
+.chip.warn { background: var(--rust-bg);  color: var(--rust); }
+.chip.new  { background: var(--amber-bg); color: var(--amber); }
+
+/* ─── flow diagram ─── */
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+  margin: 0 0 22px;
+  max-width: var(--wide);
+}
+.stage {
+  flex: 1 1 168px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--teal);
+  padding: 12px 13px;
+  min-width: 0;
+}
+.stage .st-n {
+  font-family: "JetBrains Mono", monospace;
+  font-size: .66rem;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: .08em;
+  display: block;
+  margin-bottom: 5px;
+}
+.stage .st-t {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: .9rem;
+  display: block;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.stage .st-d { font-size: .8rem; color: var(--ink-2); line-height: 1.45; }
+.stage.hot { border-top-color: var(--amber); }
+.stage.hot .st-n { color: var(--amber); }
+
+/* ─── two-up ─── */
+.duo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-bottom: 20px;
+  max-width: var(--wide);
+}
+.duo > div { min-width: 0; }
+.duo p, .duo ul { max-width: none; }
+
+/* ─── milestone rail ─── */
+.rail { border-left: 2px solid var(--line); margin: 0 0 10px; padding-left: 0; list-style: none; max-width: var(--wide); }
+.rail li { position: relative; padding: 0 0 22px 22px; margin: 0; }
+.rail li::before {
+  content: "";
+  position: absolute;
+  left: -6px; top: 7px;
+  width: 10px; height: 10px;
+  background: var(--bg);
+  border: 2px solid var(--amber);
+  border-radius: 50%;
+}
+.rail .m-id {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: .74rem;
+  color: var(--amber);
+  letter-spacing: .06em;
+}
+.rail .m-t {
+  font-family: "Archivo", sans-serif;
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 2px 0 4px;
+}
+.rail .m-d { font-size: .92rem; color: var(--ink-2); max-width: 62ch; }
+.rail .m-p {
+  font-size: .82rem;
+  color: var(--ink-3);
+  margin-top: 5px;
+  max-width: 62ch;
+}
+.rail .m-p b { color: var(--teal); font-weight: 600; }
+
+footer.end {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  padding-block: 34px 44px;
+  margin-top: 30px;
+}
+footer.end p { color: var(--ink-2); font-size: .95rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+html { scroll-behavior: smooth; scroll-padding-top: 58px; }
+</style>
+
+<header class="mast">
+  <div class="wrap mast-inner">
+    <p class="eyebrow">Master technical plan &middot; revision 1 &middot; 14 September 2026</p>
+    <h1 class="title disp">SakritCraft</h1>
+    <p class="deck">A survival and crafting game with <strong>Minecraft's rules</strong> and <strong>Skyrim's world</strong>. The terrain is a continuous signed-distance field, not a grid of cubes, so every tunnel you dig has a real slope and every cliff has a real overhang. Built from scratch in C# on Vulkan.</p>
+    <dl class="decisions">
+      <div class="dec"><dt>Stack</dt><dd>C# / .NET 9 &middot; Vulkan 1.3 via Silk.NET</dd></div>
+      <div class="dec"><dt>World representation</dt><dd>SDF terrain + modular building</dd></div>
+      <div class="dec"><dt>First vertical slice</dt><dd>Walk, mine, place, day &amp; night</dd></div>
+      <div class="dec"><dt>Network shape</dt><dd>Server-authoritative, single player</dd></div>
+      <div class="dec"><dt>Reference hardware</dt><dd>RTX 4050 laptop, 1080p, 60 fps</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="parts" aria-label="Document sections">
+  <div class="wrap">
+    <div class="parts-scroll">
+      <a href="#p00">00 Foundation</a>
+      <a href="#p01">01 Pillars</a>
+      <a href="#p02">02 Architecture</a>
+      <a href="#p03">03 Seed</a>
+      <a href="#p04">04 Worldgen</a>
+      <a href="#p05">05 Terrain &amp; Building</a>
+      <a href="#p06">06 Meshing</a>
+      <a href="#p07">07 Textures</a>
+      <a href="#p08">08 Light</a>
+      <a href="#p09">09 Physics</a>
+      <a href="#p10">10 Movement</a>
+      <a href="#p11">11 Mining</a>
+      <a href="#p12">12 Farming</a>
+      <a href="#p13">13 Items</a>
+      <a href="#p14">14 Enemies</a>
+      <a href="#p15">15 Nether</a>
+      <a href="#p16">16 Time</a>
+      <a href="#p17">17 Commands</a>
+      <a href="#p18">18 Saves</a>
+      <a href="#p19">19 Audio</a>
+      <a href="#p20">20 Roadmap</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ══ 00 ══ -->
+<section class="part" id="p00">
+  <div class="part-head"><span class="part-num">00</span><h2 class="disp">The foundation, measured</h2></div>
+  <p class="standfirst">Every number below was read off this machine today, not assumed. The plan is built on what the hardware and toolchain actually reported.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Component</th><th>Found</th><th class="mono">Status</th><th>What it lets us do</th></tr></thead>
+      <tbody>
+        <tr><td>.NET SDK</td><td class="mono">9.0.311</td><td><span class="chip ok">Ready</span></td><td>Native AOT, SIMD intrinsics, <code>Span&lt;T&gt;</code>, no-GC hot paths</td></tr>
+        <tr><td>Silk.NET</td><td class="mono">2.21.0</td><td><span class="chip ok">Restored</span></td><td>Vulkan, windowing, input bindings. Build passes clean.</td></tr>
+        <tr><td>Vulkan loader</td><td class="mono">1.4.304</td><td><span class="chip ok">Present</span></td><td>No SDK install needed to run</td></tr>
+        <tr><td>Shader compiler</td><td class="mono">Shaderc 2.21.0</td><td><span class="chip ok">Via NuGet</span></td><td>GLSL to SPIR-V at build time and at runtime for hot reload</td></tr>
+        <tr><td>Primary GPU</td><td class="mono">RTX 4050 Laptop</td><td><span class="chip ok">Vulkan 1.3.278</span></td><td>6 GB VRAM, 2560 shader cores, 3rd-gen RT cores</td></tr>
+        <tr><td>Ray query</td><td class="mono">VK_KHR_ray_query</td><td><span class="chip ok">Supported</span></td><td>Hardware ray-traced sun shadows and one-bounce diffuse light</td></tr>
+        <tr><td>Mesh shaders</td><td class="mono">VK_EXT_mesh_shader</td><td><span class="chip ok">Supported</span></td><td>GPU-driven terrain clusters, culling without CPU draw calls</td></tr>
+        <tr><td>Bindless</td><td class="mono">descriptor_indexing<br>descriptor_buffer</td><td><span class="chip ok">Supported</span></td><td>One material array for the whole world, no per-draw descriptor churn</td></tr>
+        <tr><td>Dynamic rendering</td><td class="mono">VK_KHR_dynamic_rendering</td><td><span class="chip ok">Supported</span></td><td>No render-pass or framebuffer objects. Far less boilerplate.</td></tr>
+        <tr><td>Fallback GPU</td><td class="mono">Intel Arc integrated</td><td><span class="chip warn">No RT cores</span></td><td>Forces a non-ray-traced lighting path as a real requirement, not a nice-to-have</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note key">
+    <h4>Why this matters for the design</h4>
+    <p>Ray query being available changes the lighting plan from "fake it well" to "trace it cheaply". Mesh shaders change the terrain renderer from "CPU builds draw lists" to "GPU culls its own clusters". Both are assumed throughout <a href="#p08">&sect;08</a>. The integrated GPU with no RT cores is why every ray-traced feature is specified with a rasterised twin.</p>
+  </div>
+
+  <h3>The one thing not yet verified</h3>
+  <p>Rigid-body physics needs a solver. The recommendation is <b>BepuPhysics 2</b>, which is pure C# with no native dependency, so it slots into the build with zero friction. That package has not yet been restored and tested here. It gets proven in <a href="#p20">M2</a> before anything depends on it.</p>
+</section>
+
+<!-- ══ 01 ══ -->
+<section class="part" id="p01">
+  <div class="part-head"><span class="part-num">01</span><h2 class="disp">Five pillars</h2></div>
+  <p class="standfirst">When a decision is genuinely close, these break the tie. They are listed in priority order, so pillar one wins over pillar four.</p>
+
+  <h3>1. Continuous, not cubic</h3>
+  <p>The ground is a scalar field sampled in space, not a lattice of blocks. A pickaxe removes a rounded volume of rock. A cliff can overhang. A cave can be a smooth tube that narrows. Nothing in the terrain system is allowed to reintroduce a visible cube, and no gameplay rule may assume an axis-aligned unit cell.</p>
+
+  <h3>2. Minecraft's rules, Skyrim's world</h3>
+  <p>The systems that make Minecraft work are kept almost intact in their <em>logic</em>: darkness spawns monsters, tools have tiers, materials have hardness, crops advance through growth stages on a tick, a portal built and lit takes you to a compressed hell dimension. What changes is the <em>presentation and the fidelity</em>: first-person weight, stamina, physical light, real materials, readable creatures.</p>
+
+  <h3>3. The seed is the world</h3>
+  <p>Every generated thing is a pure function of the seed and a position. No generation step may depend on player visit order, on wall-clock time, or on floating-point results that differ between machines. The save file therefore stores only the difference between what the seed produced and what the player did, which keeps saves small and makes any bug reproducible from a seed and a coordinate.</p>
+
+  <h3>4. Simulation you can read back</h3>
+  <p>Light, soil moisture, soil nutrients, temperature, and structural load are all real fields the game keeps. Each is exposed to the player through something they can see: a torch changes what spawns, dry soil visibly cracks, an unsupported ceiling sags before it falls. A simulated quantity with no visible consequence does not get built.</p>
+
+  <h3>5. This laptop at 60 fps</h3>
+  <p>The RTX 4050 at 1080p is the reference target, not a minimum spec. Any feature that cannot hold 60 fps there either gets a cheaper path or gets cut. Performance is a design constraint from day one, not an optimisation pass at the end.</p>
+</section>
+
+<!-- ══ 02 ══ -->
+<section class="part" id="p02">
+  <div class="part-head"><span class="part-num">02</span><h2 class="disp">Architecture</h2></div>
+  <p class="standfirst">One process, three worlds inside it. The simulation never touches a Vulkan handle and the renderer never mutates game state. That boundary is what makes multiplayer a transport swap later instead of a rewrite.</p>
+
+  <h3>The split</h3>
+  <div class="flow">
+    <div class="stage"><span class="st-n">SIM</span><span class="st-t">Authority</span><span class="st-d">Owns all game state. Fixed 20 Hz tick, matching Minecraft's tick rate so ported rules keep their feel. Runs on its own thread.</span></div>
+    <div class="stage hot"><span class="st-n">LINK</span><span class="st-t">Message channel</span><span class="st-d">Commands in, state snapshots out. A lock-free ring buffer today; a socket when multiplayer arrives. Nothing crosses except messages.</span></div>
+    <div class="stage"><span class="st-n">CLIENT</span><span class="st-t">Presentation</span><span class="st-d">Reads snapshots, interpolates between ticks, renders at display rate. Predicts local movement and reconciles against the authority.</span></div>
+  </div>
+
+  <p>Because the client already predicts and reconciles against an authority it cannot see inside, the single-player game is exercising the exact code path multiplayer will need. The cost today is roughly one extra week of work and a discipline about where state lives. The saving later is the difference between adding networking and rebuilding the game.</p>
+
+  <h3>Thread budget</h3>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Thread</th><th>Rate</th><th>Owns</th><th>Never touches</th></tr></thead>
+      <tbody>
+        <tr><td><b>Main / render</b></td><td class="mono tab">display Hz</td><td>Vulkan device, swapchain, frame graph, input capture</td><td>Game state mutation</td></tr>
+        <tr><td><b>Simulation</b></td><td class="mono tab">20 Hz fixed</td><td>Entities, physics, crops, light grid, AI</td><td>GPU resources</td></tr>
+        <tr><td><b>Worldgen pool</b></td><td class="mono">n-2 workers</td><td>Density fields, meshing jobs, texture streaming</td><td>Anything mutable it does not own</td></tr>
+        <tr><td><b>I/O</b></td><td class="mono">on demand</td><td>Region file reads and writes, asset loads</td><td>Blocking the sim</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Entity model</h3>
+  <p>A lightweight archetype ECS written in-house, roughly 600 lines. Components are stored in contiguous arrays per archetype so the sim iterates them without pointer chasing. Systems declare which components they read and which they write, and the scheduler uses those declarations to run non-conflicting systems in parallel.</p>
+  <p>The reason to write this rather than take a dependency is that the entity storage has to interoperate with the chunk streaming system, the serialisation format, and the network snapshot encoder. Three of those are custom anyway.</p>
+
+  <h3>Project layout</h3>
+<pre><code><span class="c">// solution: SakritCraft.sln</span>
+SakritCraft.Core         <span class="c">// math, ECS, jobs, allocators, logging</span>
+SakritCraft.World        <span class="c">// seed, noise, density, biomes, structures</span>
+SakritCraft.Mesh         <span class="c">// surface nets, QEF, LOD octree, transvoxel</span>
+SakritCraft.Render       <span class="c">// Vulkan device, frame graph, passes, GPU culling</span>
+SakritCraft.Physics      <span class="c">// SDF collision, character controller, Bepu bridge</span>
+SakritCraft.Sim          <span class="c">// entities, AI, crops, light grid, tick loop</span>
+SakritCraft.Content      <span class="c">// materials, items, recipes, creatures, biome defs</span>
+SakritCraft.Net          <span class="c">// message channel, snapshots, prediction</span>
+SakritCraft.TextureForge <span class="c">// offline procedural texture baker (see §07)</span>
+SakritCraft.Client       <span class="c">// entry point, input, UI, console, audio</span>
+SakritCraft.Tests        <span class="c">// determinism, meshing, physics regression</span>
+</code></pre>
+
+  <h3>Memory discipline</h3>
+  <p>The garbage collector is the main risk to a steady frame time in C#. Three rules avoid it. Chunk data lives in pooled arrays that are rented and returned, never allocated per use. Hot loops use <code>struct</code> types and <code>Span&lt;T&gt;</code> with no boxing. Anything per-frame goes through a bump allocator that resets at frame end. With those in place, server GC in background mode is measured, not assumed, in <a href="#p20">M2</a>.</p>
+</section>
+
+<!-- ══ 03 ══ -->
+<section class="part" id="p03">
+  <div class="part-head"><span class="part-num">03</span><h2 class="disp">Seed and determinism</h2></div>
+  <p class="standfirst">One 64-bit number decides an entire universe. Getting this layer exactly right is what makes every later system reproducible and debuggable.</p>
+
+  <h3>From text to number</h3>
+  <p>The player types anything. If it parses as a signed 64-bit integer, that is the seed. Otherwise the string is hashed with xxHash64 to produce one. An empty field draws from the system entropy source and is then shown to the player so they can write it down.</p>
+
+  <h3>Stream splitting</h3>
+  <p>A single seed feeding every generator would correlate them, so that ore veins would line up with rivers. Instead the world seed is split into independent named streams through SplitMix64, which is fast, has no state to carry, and decorrelates well.</p>
+
+<pre><code><span class="k">ulong</span> Stream(<span class="k">ulong</span> worldSeed, <span class="k">string</span> domain)
+{
+    <span class="k">ulong</span> z = worldSeed ^ XxHash64(domain);
+    z = (z ^ (z &gt;&gt; 30)) * 0xBF58476D1CE4E5B9;
+    z = (z ^ (z &gt;&gt; 27)) * 0x94D049BB133111EB;
+    <span class="k">return</span> z ^ (z &gt;&gt; 31);
+}
+
+<span class="c">// domains: "continent" "erosion" "ridge" "temperature" "humidity"</span>
+<span class="c">//          "cave.cheese" "cave.worm" "aquifer" "ore" "vegetation"</span>
+<span class="c">//          "structure" "nether.terrain" "nether.fortress" ...</span>
+</code></pre>
+
+  <h3>Position-hashed noise, not permutation tables</h3>
+  <p>All noise is gradient noise whose gradients come from hashing the integer lattice coordinate together with the stream seed. That has three consequences that matter. The world is unbounded in every direction rather than repeating at a table period. Any sample can be evaluated on any thread with no shared state and no locking. And the same coordinate always returns the same value regardless of what was generated before it.</p>
+
+  <h3>The float determinism rule</h3>
+  <div class="note">
+    <h4>Non-negotiable</h4>
+    <p>Generation math runs in <code>double</code> with no fused-multiply-add and no fast-math reordering, and every generator is unit-tested against a stored golden hash of its output. Without this, the same seed produces a slightly different world on a different CPU, and the save format in <a href="#p18">&sect;18</a> — which stores only player edits against a regenerated base — silently corrupts. This is the single most load-bearing invariant in the project.</p>
+  </div>
+
+  <h3>Coordinates</h3>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Unit</th><th class="mono">Size</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Voxel</td><td class="mono tab">0.5 m</td><td>Base density sample spacing. A player is 3.6 voxels tall.</td></tr>
+        <tr><td>Chunk</td><td class="mono tab">32&sup3; voxels = 16 m</td><td>Unit of generation, meshing, streaming, and saving</td></tr>
+        <tr><td>Region</td><td class="mono tab">32&sup3; chunks = 512 m</td><td>One file on disk</td></tr>
+        <tr><td>World height</td><td class="mono tab">&minus;512 m to +1024 m</td><td>Deep mines below, real mountains above</td></tr>
+        <tr><td>Horizontal limit</td><td class="mono tab">&plusmn;16,777,216 m</td><td>Where <code>double</code> precision starts to visibly degrade</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Rendering uses camera-relative coordinates, so world position is subtracted from the camera in <code>double</code> on the CPU and everything reaching the GPU is a small <code>float</code>. This is what prevents the geometry jitter that appears far from the origin.</p>
+</section>
+
+<!-- ══ 04 ══ -->
+<section class="part" id="p04">
+  <div class="part-head"><span class="part-num">04</span><h2 class="disp">World generation</h2></div>
+  <p class="standfirst">Eleven stages turn a seed into rock, soil, water, ore, and trees. Stages one through five are two-dimensional and cheap. Six onward are volumetric and run on the GPU where possible.</p>
+
+  <div class="flow">
+    <div class="stage"><span class="st-n">01&ndash;03</span><span class="st-t">Landform fields</span><span class="st-d">Continentalness, erosion, ridges. Three cheap 2D fields that decide the shape of everything.</span></div>
+    <div class="stage"><span class="st-n">04&ndash;05</span><span class="st-t">Climate &amp; biome</span><span class="st-d">Temperature and humidity, then a blended biome weight vector.</span></div>
+    <div class="stage hot"><span class="st-n">06&ndash;07</span><span class="st-t">Density field</span><span class="st-d">Height becomes a 3D signed distance, gaining overhangs and arches.</span></div>
+    <div class="stage hot"><span class="st-n">08&ndash;09</span><span class="st-t">Caves &amp; water</span><span class="st-d">Three cave families subtracted, aquifers filled.</span></div>
+    <div class="stage"><span class="st-n">10&ndash;11</span><span class="st-t">Material &amp; scatter</span><span class="st-d">Strata, ore veins, structures, vegetation.</span></div>
+  </div>
+
+  <h3>Stages 1&ndash;3 &middot; The three landform fields</h3>
+  <p><b>Continentalness</b> is very low frequency noise, domain-warped so coastlines wander instead of looking like contour lines. It runs from deep ocean through shelf and coast to inland and far inland.</p>
+  <p><b>Erosion</b> is an independent field that decides how worn the land is. High erosion produces flat plains and wide valleys. Low erosion produces jagged, dramatic relief. Critically, erosion also controls how much three-dimensional character the terrain gets in stage 6, which is what makes overhangs appear in young mountains and not in old plains.</p>
+  <p><b>Ridges</b> come from inverted absolute-value noise, giving sharp mountain crests and sharp valley floors rather than the rolling blobs plain noise produces.</p>
+
+  <h3>Stages 4&ndash;5 &middot; Climate and blended biomes</h3>
+  <p>Temperature combines a broad latitude gradient, a noise field, and an altitude lapse rate of roughly 6.5 &deg;C per kilometre, so mountains are genuinely colder than the plains beside them. Humidity is its own field, pulled up near water and pushed down in rain shadows behind ridges.</p>
+  <p>Each biome is defined as a point in the four-dimensional space of temperature, humidity, continentalness, and erosion, with a radius of influence. A position samples its distance to every biome point and produces a <em>weight vector</em>, not a single winner.</p>
+  <div class="note key">
+    <h4>The blended-biome payoff</h4>
+    <p>Because a position carries weights rather than one biome ID, terrain height, material choice, vegetation density, and even fog colour all interpolate across the border. There is no line in the ground where pine forest becomes desert. This single decision removes the most recognisable visual tell of block-game world generation, and it costs almost nothing because the weights are computed once per column and reused by every later stage.</p>
+  </div>
+
+  <h3>Stage 6 &middot; Height, then density</h3>
+  <p>A base height is produced per column by evaluating a spline over continentalness, offset by a second spline over erosion multiplied by the ridge field. Splines are piecewise-linear control point lists stored in content files, so terrain character is tuned by editing data, not by recompiling.</p>
+  <p>That height then becomes a signed distance, which is where the terrain stops being a heightmap:</p>
+<pre><code>d(p) = (p.y - height(p.xz)) * verticalScale
+     - noise3D(p * 0.015) * overhangStrength(erosion)
+     - noise3D(p * 0.06)  * 0.35
+
+<span class="c">// d &lt; 0 is solid rock, d &gt; 0 is open air, d == 0 is the surface.</span>
+<span class="c">// overhangStrength is near zero on eroded plains and large in</span>
+<span class="c">// young mountains, so cliffs undercut where they geologically should.</span>
+</code></pre>
+
+  <h3>Stages 8&ndash;9 &middot; Caves and water</h3>
+  <p>Three cave families are subtracted from the density field, each doing a different job.</p>
+  <ul>
+    <li><b>Cheese caves</b> come from taking low-frequency noise and carving where its absolute value falls below a threshold. These produce the large open caverns worth building a base inside.</li>
+    <li><b>Spaghetti caves</b> are two ridged noise fields intersected, producing long winding tubes roughly two to four metres across. These are the ones you follow.</li>
+    <li><b>Noodle caves</b> are thin, high-frequency, and mostly dead ends. They exist to make the cave network feel irregular rather than designed.</li>
+  </ul>
+  <p>Cave density is biased upward near hillsides so that entrances actually appear on the surface, which is a deliberate playability cheat over pure realism. Aquifers then assign a local water table height per region, and any cave volume below its region's table fills with water. Lava does the same below roughly &minus;300 m. Since the terrain is an SDF, a flooded cave has a genuinely flat water surface meeting a genuinely curved rock wall.</p>
+
+  <h3>Stage 10 &middot; Materials and ore</h3>
+  <p>Material assignment reads depth below surface, biome weights, slope, and a strata field. Slope matters: grass and soil cannot cling to a face steeper than about 40 degrees, so cliffs expose bare rock automatically with no authoring.</p>
+  <p>Ore veins are blob-shaped noise clusters gated by a depth rarity curve, following Minecraft's structure of common metals shallow and rare ones deep. The difference is that a vein is a continuous region of the material field rather than a scatter of cubes, so mining one is a matter of following the seam.</p>
+
+  <h3>Stage 11 &middot; Structures and vegetation</h3>
+  <p>Structures are placed on a jittered grid: each cell of a coarse lattice deterministically decides whether it holds a structure and where inside the cell it sits. Placement then tests the terrain for enough flat ground. Because the test only reads the seed-derived field, it gives the same answer whether or not the player has ever been nearby.</p>
+  <p>Vegetation uses deterministic Poisson-disc scatter per chunk, with density from biome weights, humidity, and slope, and with a per-instance size and rotation drawn from the position hash. Trees are instanced meshes with procedurally varied trunk curvature rather than generated geometry, which keeps them cheap enough to render thousands of.</p>
+</section>
+
+<!-- ══ 05 ══ -->
+<section class="part" id="p05">
+  <div class="part-head"><span class="part-num">05</span><h2 class="disp">Terrain and building, the hybrid</h2></div>
+  <p class="standfirst">Two systems share the world. The ground is a field you carve; structures are parts you assemble. Knowing exactly where the line falls prevents both systems from fighting.</p>
+
+  <h3>The division</h3>
+  <div class="duo">
+    <div>
+      <h4>Terrain layer &middot; SDF</h4>
+      <p>Everything natural. Rock, soil, sand, ice, ore. Freely carved and freely filled at any angle with brush operations. Meshed by surface nets. This is what a pickaxe and a shovel act on.</p>
+    </div>
+    <div>
+      <h4>Structure layer &middot; parts</h4>
+      <p>Everything built. Walls, beams, floors, roofs, stairs, doors, furniture. Placed as instanced meshes that snap to a socket graph. Authored geometry, so it looks like architecture rather than like sculpted mud.</p>
+    </div>
+  </div>
+
+  <p>The reason to split them is that these two goals are in direct conflict. Carving a field gives organic, freeform results and is exactly wrong for a straight wall with a clean corner. Snapping authored parts gives crisp architecture and is exactly wrong for a cave. Trying to serve both with one representation produces something that does neither well.</p>
+
+  <h3>How parts snap</h3>
+  <p>Each part carries typed sockets on its edges: a wall has sockets top, bottom, left, and right, each tagged with what may connect. When a part is held, the game searches nearby existing sockets of compatible type within a tolerance and previews the snapped result. Free placement without a socket is allowed on terrain, and that placement then conforms to the ground normal.</p>
+
+  <h3>Structural integrity</h3>
+  <p>Both layers feed one load simulation, which is the mechanism that ties them together and is the source of a lot of the game's tension.</p>
+  <ul>
+    <li>Each part and each terrain region has a support value from 0 to 1, where a value of 1 means it is grounded.</li>
+    <li>Support propagates outward from bedrock and from the ground, losing strength with distance according to material. Stone carries load about three times further than wood.</li>
+    <li>A part below its support threshold visibly sags and creaks first, then falls a few seconds later. That warning window is what makes the system feel fair rather than punitive.</li>
+    <li>Mining out a cave ceiling drops the support of the rock above it. Over-mine and it collapses on you. Place timber support beams and it does not.</li>
+  </ul>
+  <div class="note">
+    <h4>Design consequence worth naming</h4>
+    <p>This turns mining from a resource-collection chore into an engineering problem, and it is the clearest place where the realistic world produces gameplay Minecraft cannot have. It is also a system that can make the game miserable if it is too aggressive, so the threshold ships tunable and starts forgiving.</p>
+  </div>
+</section>
+
+<!-- ══ 06 ══ -->
+<section class="part" id="p06">
+  <div class="part-head"><span class="part-num">06</span><h2 class="disp">Meshing, level of detail, streaming</h2></div>
+  <p class="standfirst">Turning a density field into triangles fast enough to do it while the player is swinging a pickaxe. This is the hardest engineering in the project and the most likely place to lose weeks.</p>
+
+  <h3>Surface nets with feature preservation</h3>
+  <p>Standard marching cubes is rejected because it produces sliver triangles and cannot represent a sharp edge, which matters the moment a player cuts a flat floor. Instead the mesher uses dual contouring by surface nets: one vertex per cell that contains a sign change, positioned by minimising a quadratic error function built from the surface normals where the field crosses each cell edge.</p>
+  <p>The practical effect is that a natural cave wall comes out smooth and a deliberately flattened floor comes out flat with a crisp edge where it meets the wall. That single property is what lets one representation serve both a cave and a mineshaft. The QEF solve is stabilised by clamping the result inside the cell, which avoids the self-intersection this technique is known for.</p>
+
+  <h3>The GPU meshing pipeline</h3>
+<pre><code><span class="c">// four compute dispatches per chunk, no CPU readback</span>
+1  sample     evaluate density + material into a 34³ padded volume
+2  classify   flag active cells, prefix-sum to get output offsets
+3  vertices   solve QEF per active cell, emit position/normal/material
+4  indices    emit quads across each sign-changing edge
+
+<span class="c">// output lands straight in a device-local vertex buffer.</span>
+<span class="c">// budget: ~0.4 ms per chunk. Edits remesh one chunk, not the world.</span>
+</code></pre>
+  <p>A CPU mesher exists alongside it, producing byte-identical output. It is slower, and it is what physics queries and the regression tests use, and it is the fallback if a driver misbehaves. Keeping the two in agreement is enforced by a test.</p>
+
+  <h3>Level of detail</h3>
+  <p>Chunks live in a sparse octree centred on the player. Each level outward doubles the voxel spacing and halves the resolution, which keeps the triangle count roughly constant per level while the covered volume grows eightfold.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>LOD</th><th class="mono">Voxel</th><th class="mono">Chunk covers</th><th class="mono">Radius</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">0</td><td class="mono tab">0.5 m</td><td class="mono tab">16 m</td><td class="mono tab">96 m</td><td>Full detail, editable, collidable</td></tr>
+        <tr><td class="mono">1</td><td class="mono tab">1 m</td><td class="mono tab">32 m</td><td class="mono tab">192 m</td><td>Near background</td></tr>
+        <tr><td class="mono">2</td><td class="mono tab">2 m</td><td class="mono tab">64 m</td><td class="mono tab">384 m</td><td>Mid distance</td></tr>
+        <tr><td class="mono">3</td><td class="mono tab">4 m</td><td class="mono tab">128 m</td><td class="mono tab">768 m</td><td>Far terrain</td></tr>
+        <tr><td class="mono">4&ndash;6</td><td class="mono tab">8&ndash;32 m</td><td class="mono tab">256&ndash;1024 m</td><td class="mono tab">6 km</td><td>Horizon silhouette</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Seams between levels are handled by transvoxel transition cells, which insert a thin band of specially-cased geometry along any face where resolution changes. The alternative, dropping a vertical skirt to hide the crack, is cheaper but visible on overhangs, and overhangs are a headline feature.</p>
+
+  <h3>Streaming</h3>
+  <p>A chunk moves through a strict state machine: unloaded, queued, generating, meshing, uploading, resident. Work is prioritised by distance and by whether the chunk is in front of the camera. Every stage runs on worker threads except the final GPU upload, which is batched once per frame on a transfer queue so it never stalls the graphics queue.</p>
+  <p>The player never waits on terrain: the movement code in <a href="#p10">&sect;10</a> refuses to advance past the resident boundary, and in practice generation stays several hundred metres ahead of anyone on foot.</p>
+</section>
+
+<!-- ══ 07 ══ -->
+<section class="part" id="p07">
+  <div class="part-head"><span class="part-num">07</span><h2 class="disp">Materials and procedural textures</h2></div>
+  <p class="standfirst">Every texture in the game is generated by code we write, not downloaded or hand-painted. A material is a small node graph that bakes to a compressed physically-based texture set.</p>
+
+  <h3>Why generate rather than author</h3>
+  <p>Three reasons, in order of weight. The world needs materials at many scales and many weathering states, and a graph produces all of them from one definition. Generated textures are seamless and tileable by construction, which hand-painting is not. And a graph is a few kilobytes of source that regenerates gigabytes of output, so the repository stays small and a material tweak is a one-line change plus a rebake.</p>
+
+  <h3>The baker</h3>
+  <p><code>SakritCraft.TextureForge</code> is a separate command-line tool in the solution. It reads material graph definitions, evaluates them at 2048&times;2048, and writes a KTX2 texture array with BC7 for colour data and BC5 for normals. It runs at build time and caches by graph hash, so an untouched material is never rebaked.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Output</th><th class="mono">Format</th><th>Carries</th></tr></thead>
+      <tbody>
+        <tr><td>Albedo</td><td class="mono">BC7 sRGB</td><td>Base colour with no baked lighting whatsoever</td></tr>
+        <tr><td>Normal</td><td class="mono">BC5 2-channel</td><td>Surface detail. Third component reconstructed in the shader.</td></tr>
+        <tr><td>ORM</td><td class="mono">BC7 linear</td><td>Ambient occlusion, roughness, metalness packed one per channel</td></tr>
+        <tr><td>Height</td><td class="mono">BC4 1-channel</td><td>Parallax occlusion and height-based blending between materials</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Node vocabulary</h3>
+  <p>Roughly thirty nodes cover everything needed. Generators: gradient noise, Worley cells, ridged, flow, plasma, checker, shape primitives. Transforms: domain warp, tile, rotate, scale, mirror. Combiners: add, multiply, screen, min, max, blend by mask. Filters: blur, sharpen, levels, curve, histogram normalise. Simulators: hydraulic erosion, thermal talus, dilation, distance field. Outputs: colour ramp, normal from height, curvature, ambient occlusion from height.</p>
+
+  <h3>Material recipes</h3>
+  <p>These are the actual construction notes, not placeholders. Each one is a short paragraph because each one is genuinely a different physical process.</p>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Material</th><th>Construction</th></tr></thead>
+      <tbody>
+        <tr><td><b>Granite</b></td><td>Worley cells at three scales give interlocking crystals. A second high-frequency Worley masked to 4% of area drops in mica flecks with raised specular. Colour ramp from warm grey to pink. Roughness varies per crystal so it glitters unevenly.</td></tr>
+        <tr><td><b>Limestone</b></td><td>Horizontally stretched gradient noise gives sedimentary banding. Subtractive Worley blobs cut dissolution pits. Light hydraulic erosion pass runs downward to streak the pits. Uniformly pale and high roughness.</td></tr>
+        <tr><td><b>Sandstone</b></td><td>Strong horizontal banding with per-band colour drift, plus cross-bedding at a shallow angle to suggest ancient dunes. Grain from fine noise. Edges softened everywhere, since sandstone does not hold a sharp corner.</td></tr>
+        <tr><td><b>Soil</b></td><td>Clumped Worley for aggregates, dark humus ramp, scattered small stones from a masked second Worley. Moisture drives a runtime darkening and roughness drop, so wet earth reads correctly without a second texture.</td></tr>
+        <tr><td><b>Grass</b></td><td>Directional flow noise gives blade clumps. Colour ramp seeded per-instance so patches vary. Height map slightly raised at clump centres so parallax gives real depth at grazing angles.</td></tr>
+        <tr><td><b>Sand</b></td><td>Very fine grain noise plus a large-scale ripple pattern in the normal map only, since ripples are geometry rather than colour. Near-uniform albedo, high roughness, subtle sparkle from a sparse bright mask.</td></tr>
+        <tr><td><b>Ice</b></td><td>Low roughness, cracks from an inverted distance field on a Voronoi skeleton, trapped bubbles from sparse spheres. Slight transmission tint toward cyan.</td></tr>
+        <tr><td><b>Bark</b></td><td>Vertical ridged noise warped by a low-frequency field so it wanders. Deep crevices from a thresholded height, darkened and with raised ambient occlusion. Species vary by ridge frequency and colour ramp only.</td></tr>
+        <tr><td><b>Ore</b></td><td>Host rock graph underneath, then a vein mask from thin warped noise. Metallic set to 1 inside the vein only. Iron reads warm brown, copper green-streaked, gold bright and very low roughness.</td></tr>
+        <tr><td><b>Obsidian</b></td><td>Near-black albedo, very low roughness, conchoidal fracture from overlapping shallow curved shapes in the normal map. Faint purple sheen from a thin-film tint.</td></tr>
+        <tr><td><b>Basalt</b><span class="chip new">Nether</span></td><td>Columnar hexagonal Worley, dark grey, vesicles from sparse subtractive spheres. Cracks carry an emissive mask driven by proximity to lava.</td></tr>
+        <tr><td><b>Soul sand</b><span class="chip new">Nether</span></td><td>Sand base, darkened heavily, with faint face-like depressions from blurred and thresholded organic noise. Deliberately restrained so it unsettles rather than declares itself.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Applying them without visible repetition</h3>
+  <p>Terrain has no UV coordinates, so materials are projected triplanar: sampled three times along the world axes and blended by the surface normal raised to a power. To kill the tiling grid that any repeated texture produces, sampling uses stochastic hex-grid blending, which offsets the lookup randomly per hexagonal region and blends three neighbours with variance-preserving weights. The cost is three texture fetches instead of one, and the result has no visible repetition at any distance.</p>
+  <p>Two further layers finish it. A macro variation texture at 64-metre scale multiplies large-scale colour drift over everything, which is what real terrain has and tiled textures never do. And runtime state layers apply wetness from rain, snow accumulation biased to upward faces, and moss biased to shaded damp ones, all computed in the shader from world state rather than stored.</p>
+</section>
+
+<!-- ══ 08 ══ -->
+<section class="part" id="p08">
+  <div class="part-head"><span class="part-num">08</span><h2 class="disp">Light, in two systems</h2></div>
+  <p class="standfirst">This is the most important architectural idea in the document. Minecraft's light is a gameplay mechanic. Realistic light is a rendering problem. Trying to make one system do both is what makes realistic voxel games feel wrong. So there are two.</p>
+
+  <div class="note key">
+    <h4>The dual-light design</h4>
+    <p><b>Gameplay light</b> is a coarse integer grid, flood-filled exactly the way Minecraft does it. It decides what spawns, what grows, and whether the player is in the dark. It is cheap, discrete, and predictable, which is precisely what makes those rules learnable.</p>
+    <p><b>Visual light</b> is fully physical: ray-traced sun shadows, one-bounce global illumination, emissive materials, volumetric fog. It decides what you see and nothing else.</p>
+    <p>They are computed from the same world but never read each other. A player can learn "torches every seven metres stops spawns" as a reliable rule while still seeing light that falls off smoothly and bounces off walls.</p>
+  </div>
+
+  <h3>Gameplay light</h3>
+  <p>A 1-metre grid stores two values per cell, each 0 to 15, matching Minecraft exactly. <b>Sky light</b> propagates down from open sky, losing nothing on the way down and one level per metre sideways. <b>Block light</b> propagates outward from emitters, losing one level per metre in every direction. A torch at 14 therefore reaches 14 metres, which is the number players already know.</p>
+  <p>Propagation is the standard breadth-first flood fill with a removal pass, run incrementally on the simulation thread when a light is placed or removed or when terrain changes. Cells are marked passable by sampling the density field, so light correctly flows through a tunnel you carved. A cell's effective light is the maximum of block light and sky light scaled by time of day, and that number is what <a href="#p14">&sect;14</a> and <a href="#p12">&sect;12</a> read.</p>
+
+  <h3>Visual light</h3>
+  <div class="flow">
+    <div class="stage"><span class="st-n">G-BUF</span><span class="st-t">Geometry</span><span class="st-d">Mesh-shader terrain and instanced parts write albedo, normal, ORM, motion vectors. GPU culls itself.</span></div>
+    <div class="stage hot"><span class="st-n">RT</span><span class="st-t">Sun shadow</span><span class="st-d">One ray query per pixel toward the sun disc, giving contact-hardening penumbrae no shadow map can match.</span></div>
+    <div class="stage hot"><span class="st-n">GI</span><span class="st-t">Irradiance probes</span><span class="st-d">Probe grid at 2 m, a few rays per probe per frame, accumulated over time. Gives real bounce in caves.</span></div>
+    <div class="stage"><span class="st-n">LIT</span><span class="st-t">Shading</span><span class="st-d">Clustered lights for torches and lava, then GI, then emissive.</span></div>
+    <div class="stage"><span class="st-n">VOL</span><span class="st-t">Volumetrics</span><span class="st-d">Froxel fog, godrays through cave mouths, Nether ash.</span></div>
+    <div class="stage"><span class="st-n">POST</span><span class="st-t">Resolve</span><span class="st-d">TAA with upscale, bloom, ACES tonemap, exposure adaptation.</span></div>
+  </div>
+
+  <p>Torches matter enormously in a game about caves, so they get specific treatment: a warm point light with inverse-square falloff, a flicker curve driven by layered noise rather than a random jitter, and a colour that shifts slightly toward red as it flickers down. Lava is an emissive material feeding the same clustered light list, so a lava lake genuinely lights the cavern above it.</p>
+
+  <h3>Exposure, and why darkness has to be dark</h3>
+  <p>Eye adaptation is simulated with an asymmetric response: adapting to darkness takes several seconds, adapting to brightness takes well under one. Walking out of a lit cave into daylight briefly blows out the image. Walking in briefly blinds you. This is the single cheapest thing that makes torches feel necessary rather than decorative, and it is worth tuning carefully.</p>
+
+  <h3>The no-ray-tracing path</h3>
+  <p>Required for the integrated GPU found on this machine and for anything older than a 2018 card. Sun shadows fall back to four cascaded shadow maps with contact-hardening filtering. Global illumination falls back to the same probe grid filled by rasterised cube captures updated a few probes per frame, plus screen-space ambient occlusion. Everything downstream is identical, because the probe grid is the interface both paths write into.</p>
+</section>
+
+<!-- ══ 09 ══ -->
+<section class="part" id="p09">
+  <div class="part-head"><span class="part-num">09</span><h2 class="disp">Physics</h2></div>
+  <p class="standfirst">Colliding against a field rather than against triangles, which is faster and more robust, and the reason mining can change the world every frame without rebuilding a collision mesh.</p>
+
+  <h3>Colliding with the field directly</h3>
+  <p>The terrain's collision representation is the density field itself. To test a sphere, sample the field at its centre; if the value is less than the radius, it overlaps, and the gradient of the field gives the contact normal for free. Sweeping is sphere tracing: step along the motion by the current distance value, which cannot overshoot the surface, and converge in a handful of iterations.</p>
+  <p>This is decisively better than meshing a collider. There is no collision mesh to rebuild when the player mines, so an edit is free. There is no tunnelling through thin geometry. The normal is exact rather than interpolated. And the memory cost is zero beyond the density data already resident.</p>
+
+  <h3>The character controller</h3>
+  <p>The player is a capsule 1.8 m tall and 0.3 m in radius, swept against the field and resolved by depenetration along the gradient, then by sliding the remaining motion along the contact plane. Three passes per tick handle corners. Ground is detected by a short downward probe, with a coyote-time window of 120 ms after leaving an edge so that jumps off ledges feel responsive rather than precise.</p>
+  <p>Step-up is handled by probing forward at ankle height and, if blocked, re-probing at 0.45 m and lifting the capsule if that is clear. This is what lets the player walk up rubble and stairs without jumping and without the stuttering that naive slope handling produces.</p>
+
+  <h3>Rigid bodies</h3>
+  <p>BepuPhysics 2 handles dropped items, collapsing structure parts, carts, and ragdolls. It is pure C#, so it needs no native interop and its determinism story is good. Terrain enters it as a custom collider type backed by the same sphere-tracing described above, so there is one source of truth for the world's shape.</p>
+
+  <h3>Fluids</h3>
+  <p>Water and lava are not simulated as particles, which would be both expensive and hard to control. Each body of fluid has a surface level and a volume, and flow is a cellular update on a coarse grid that redistributes volume toward lower neighbours. The rendered surface is a plane clipped against the terrain SDF with a displacement for waves. Swimming, buoyancy, and drowning read the fluid level at the player's head and chest. Breaking into a flooded cave drains it over several seconds, which is a genuinely dangerous and memorable event.</p>
+</section>
+
+<!-- ══ 10 ══ -->
+<section class="part" id="p10">
+  <div class="part-head"><span class="part-num">10</span><h2 class="disp">Movement and feel</h2></div>
+  <p class="standfirst">The single most-felt system in the game. A player spends ten thousand times longer walking than crafting, so this gets tuned longer than anything else.</p>
+
+  <h3>Stamina as the central resource</h3>
+  <p>Following Skyrim's model, one bar gates sprinting, jumping, power attacks, climbing, and swimming hard. It drains at a rate per action and regenerates after a short delay once you stop spending it. Encumbrance from carried weight slows movement and slows stamina regeneration, which is what makes a mining trip a decision about what to leave behind rather than a walk back with everything.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>State</th><th class="mono">Speed</th><th class="mono">Stamina</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Walk</td><td class="mono tab">3.2 m/s</td><td class="mono tab">regenerates</td><td>Default. Weapon-ready reduces to 2.6.</td></tr>
+        <tr><td>Sprint</td><td class="mono tab">6.0 m/s</td><td class="mono tab">&minus;12 /s</td><td>Requires stamina above 10%</td></tr>
+        <tr><td>Sneak</td><td class="mono tab">1.5 m/s</td><td class="mono tab">regenerates</td><td>Large detection penalty for enemies, see §14</td></tr>
+        <tr><td>Swim</td><td class="mono tab">1.8 m/s</td><td class="mono tab">&minus;4 /s</td><td>Breath meter, 45 s at rest</td></tr>
+        <tr><td>Climb</td><td class="mono tab">1.0 m/s</td><td class="mono tab">&minus;18 /s</td><td>Only on faces above 55&deg; with handholds</td></tr>
+        <tr><td>Encumbered</td><td class="mono tab">&times;0.55</td><td class="mono tab">&times;0.4 regen</td><td>Above the carry limit set by strength</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Slopes, which matter more here than in a block game</h3>
+  <p>Because terrain is continuous, slope is a continuous quantity and the game can respond to it properly. Below 35 degrees you walk normally, with a small speed penalty going up. Between 35 and 55 you begin to slide, slowly at first, and cannot gain ground. Above 55 you must climb, which costs stamina fast and fails if the stamina runs out. A scree slope has a lower friction value and slides at a shallower angle, which makes loose mountain terrain genuinely treacherous.</p>
+
+  <h3>Mantling</h3>
+  <p>Rather than the jump-repeatedly-at-a-ledge behaviour block games produce, a forward probe detects a ledge between 0.5 m and 1.4 m with clear space above it, and plays a mantle: the camera lifts along an arc while the capsule interpolates to the ledge top. It takes about 0.6 seconds and cannot be cancelled. This single animation is most of why the game will feel like a first-person RPG rather than a voxel sandbox.</p>
+
+  <h3>Camera and weight</h3>
+  <p>First person is the default, with third person available on a spring arm that collides with terrain. The first-person camera carries a small positional bob tied to footstep timing, a lag on rotation so fast turns trail slightly, and a landing dip proportional to fall speed. Each is subtle individually. Together they are the difference between a camera flying through a world and a body moving through it. All three are exposed in settings, because a meaningful number of players get motion sick from exactly this.</p>
+</section>
+
+<!-- ══ 11 ══ -->
+<section class="part" id="p11">
+  <div class="part-head"><span class="part-num">11</span><h2 class="disp">Mining</h2></div>
+  <p class="standfirst">Minecraft's tier-and-hardness logic preserved exactly, applied to a field that yields real holes.</p>
+
+  <h3>The rules, kept</h3>
+  <p>Every material has a hardness, a required tool type, and a required tier. Every tool has a tier, an efficiency multiplier, and durability. If the tool type is wrong, progress is drastically slower. If the tier is too low, the material yields nothing at all, which is the gate that structures the whole progression from wood through stone, iron, and beyond.</p>
+<pre><code>breakTime = (hardness * 1.5) / (toolSpeed * tierMultiplier * efficiency)
+          * (onGround ? 1.0 : 5.0)
+          * (inWater &amp;&amp; !aquaAffinity ? 5.0 : 1.0)
+
+<span class="c">// Deliberately the same shape as Minecraft's formula, so that</span>
+<span class="c">// anyone who has internalised that game's pacing feels at home.</span>
+</code></pre>
+
+  <h3>What a swing actually does</h3>
+  <p>A swing raycasts against the density field. On a hit it accumulates progress at that point, shown by cracks that spread across the surface. When progress completes, a brush subtracts a sphere from the field, the affected chunk remeshes, and the removed volume converts to items.</p>
+  <p>Yield is proportional to volume removed rather than to a block count. A cubic metre of iron ore gives a fixed number of chunks of ore, so a pickaxe that carves a wider radius mines faster in every sense. Fortune-equivalent enchantments multiply the yield, not the volume.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Tool</th><th class="mono">Radius</th><th>Acts on</th><th>Character</th></tr></thead>
+      <tbody>
+        <tr><td>Pickaxe</td><td class="mono tab">0.35 m</td><td>Stone, ore, hard rock</td><td>Precise. The tunnelling tool.</td></tr>
+        <tr><td>Shovel</td><td class="mono tab">0.55 m</td><td>Soil, sand, gravel, snow</td><td>Fast and wide on soft ground only</td></tr>
+        <tr><td>Axe</td><td class="mono tab">&mdash;</td><td>Trees, wooden parts</td><td>Fells whole trees, which then fall physically</td></tr>
+        <tr><td>Chisel</td><td class="mono tab">0.12 m</td><td>Anything mineable</td><td>Slow, fine. For shaping rather than extracting.</td></tr>
+        <tr><td>Drill</td><td class="mono tab">0.45 m</td><td>Stone and ore</td><td>Late game. Continuous, consumes fuel.</td></tr>
+        <tr><td>Explosive</td><td class="mono tab">2.5 m</td><td>Everything in range</td><td>Enormous volume, heavy structural consequences</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What the field representation adds</h3>
+  <ul>
+    <li><b>Seams, not scatter.</b> An ore vein is a continuous volume, so mining is following a seam by reading the rock, which is closer to the real activity and far more satisfying than chasing isolated cubes.</li>
+    <li><b>Tunnels with shape.</b> A carved tunnel is round and follows the slope you swung at. Mineshafts look mined rather than extruded.</li>
+    <li><b>Consequences.</b> Volume removed feeds the support simulation from <a href="#p05">&sect;05</a>, so a wide unsupported chamber sags, creaks, and eventually comes down.</li>
+    <li><b>Smoothing and filling.</b> Placing material is the same brush operation with the sign flipped, so repairing a wall or sculpting a floor uses the same verb as mining.</li>
+  </ul>
+</section>
+
+<!-- ══ 12 ══ -->
+<section class="part" id="p12">
+  <div class="part-head"><span class="part-num">12</span><h2 class="disp">Farming</h2></div>
+  <p class="standfirst">Minecraft's till, plant, water, wait loop, with soil that is actually modelled. The extra depth all comes from three numbers per patch of ground.</p>
+
+  <h3>Soil state</h3>
+  <p>Tilling with a hoe converts terrain surface material to farmland and attaches a soil record: moisture from 0 to 1, nitrogen, phosphorus, and potassium each from 0 to 1, and a tilth value that decays as the soil is walked on and is restored by tilling again.</p>
+  <p>Moisture spreads from water sources through the soil by permeability, so an irrigation channel waters a radius that depends on whether the ground is sand or clay. Moisture evaporates faster in heat and in direct sun, and rain adds to it. Nutrients deplete as crops grow and are restored by compost, by manure, or by leaving the ground fallow.</p>
+
+  <h3>Growth</h3>
+  <p>Crops advance through discrete stages on the simulation tick, exactly as Minecraft does, but the chance to advance is the product of several factors rather than a flat probability:</p>
+<pre><code>growthChance = base
+             * lightFactor       <span class="c">// gameplay light grid ≥ 9, from §08</span>
+             * moistureFactor    <span class="c">// peaks in a band, drowns above it</span>
+             * temperatureFactor <span class="c">// each crop has a preferred range</span>
+             * nutrientFactor    <span class="c">// limited by the scarcest nutrient</span>
+             * seasonFactor      <span class="c">// §16</span>
+</code></pre>
+  <p>The light threshold of 9 is taken straight from Minecraft, and it is what makes an indoor torch-lit farm work, which is a beloved mechanic worth preserving precisely.</p>
+
+  <h3>Crop rotation, the one genuinely new idea</h3>
+  <p>Different crops draw down different nutrients and some restore one. Legumes fix nitrogen. Cereals consume it heavily. Root vegetables draw phosphorus. Planting the same crop repeatedly exhausts the specific nutrient it needs and yields collapse; rotating maintains the soil indefinitely. This is a real agricultural system, it is genuinely interesting to optimise, and it costs three floats per patch of ground.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Crop</th><th class="mono">Stages</th><th class="mono">Temp band</th><th>Nutrient effect</th></tr></thead>
+      <tbody>
+        <tr><td>Wheat</td><td class="mono tab">8</td><td class="mono tab">5&ndash;28 &deg;C</td><td>Heavy nitrogen draw</td></tr>
+        <tr><td>Beans</td><td class="mono tab">6</td><td class="mono tab">12&ndash;30 &deg;C</td><td><b>Restores</b> nitrogen</td></tr>
+        <tr><td>Turnip</td><td class="mono tab">5</td><td class="mono tab">0&ndash;22 &deg;C</td><td>Phosphorus draw, frost tolerant</td></tr>
+        <tr><td>Gourd</td><td class="mono tab">7</td><td class="mono tab">15&ndash;34 &deg;C</td><td>Heavy water, heavy potassium</td></tr>
+        <tr><td>Cave fungus</td><td class="mono tab">4</td><td class="mono tab">any</td><td>Needs light <b>below</b> 6. Grows underground.</td></tr>
+        <tr><td>Ember root<span class="chip new">Nether</span></td><td class="mono tab">5</td><td class="mono tab">above 40 &deg;C</td><td>Only grows on soul sand near lava</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Animals</h3>
+  <p>Livestock follow Minecraft's breeding loop of feed two adults to produce young, with a cooldown. What is added is pasture: grazing depletes the grass in an area, which regrows over days, so an overstocked pen starves. Animals need water within a radius and shelter in cold weather. Manure from penned animals is the main route to restoring soil nutrients, which closes the loop between the two halves of farming.</p>
+</section>
+
+<!-- ══ 13 ══ -->
+<section class="part" id="p13">
+  <div class="part-head"><span class="part-num">13</span><h2 class="disp">Items, crafting, progression</h2></div>
+  <p class="standfirst">The spine that gives mining and farming a reason to exist.</p>
+
+  <h3>Inventory</h3>
+  <p>A weight-based inventory rather than a fixed slot count, because weight is what makes the encumbrance rule in <a href="#p10">&sect;10</a> matter. Items stack by type with a per-type stack limit, and the carry limit rises with a strength attribute. Containers, and a late-game pack, extend it.</p>
+
+  <h3>Crafting</h3>
+  <p>Three routes, matching Minecraft's escalation from hand to bench to specialised station.</p>
+  <ul>
+    <li><b>By hand</b> for a small set of survival basics: torch, crude axe, bandage.</li>
+    <li><b>At a bench</b> with a recipe list filtered by what you carry. Grid-shape puzzles are dropped in favour of a readable list, because shaped recipes are a memorisation tax that adds nothing here.</li>
+    <li><b>At a station</b> for transformation that takes time and fuel: smelter, forge, alchemy table, loom, kiln. These run as a queue with real duration, so smelting is a thing you start and come back to.</li>
+  </ul>
+
+  <h3>Progression</h3>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th class="mono">Tier</th><th>Material</th><th>Unlocked by</th><th>Opens</th></tr></thead>
+      <tbody>
+        <tr><td class="mono tab">0</td><td>Wood, stone, fibre</td><td>Hands and the surface</td><td>Basic tools, shelter, fire</td></tr>
+        <tr><td class="mono tab">1</td><td>Copper, tin</td><td>Stone pickaxe, shallow caves</td><td>Bronze, the first real tools</td></tr>
+        <tr><td class="mono tab">2</td><td>Iron</td><td>Bronze pickaxe, a smelter</td><td>Armour, deeper mining, better weapons</td></tr>
+        <tr><td class="mono tab">3</td><td>Steel, obsidian</td><td>Iron tools, a forge, lava</td><td>The Nether portal</td></tr>
+        <tr><td class="mono tab">4</td><td>Nether alloys</td><td>Surviving the Nether</td><td>Endgame gear, enchanting</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Each tier gates the next through a required tool tier, which is the same interlock Minecraft uses and the reason its progression reads so clearly. Obsidian requiring a steel pickaxe and lava to form is what makes reaching the Nether feel earned.</p>
+</section>
+
+<!-- ══ 14 ══ -->
+<section class="part" id="p14">
+  <div class="part-head"><span class="part-num">14</span><h2 class="disp">Enemies and AI</h2></div>
+  <p class="standfirst">Minecraft's spawning rules, which are load-bearing for the whole night-and-caves loop, driving creatures that behave like they belong in an RPG.</p>
+
+  <h3>Spawning, kept faithful</h3>
+  <p>The rules are deliberately close to the original, because they are what make darkness meaningful and torches valuable:</p>
+  <ul>
+    <li>A candidate position must have gameplay light below the creature's threshold, which is 7 for most hostiles. This reads the grid from <a href="#p08">&sect;08</a>, not the rendered image.</li>
+    <li>It must be on a walkable surface with enough clear space above, tested against the density field.</li>
+    <li>It must be between 24 m and 128 m from the player, so nothing appears in view.</li>
+    <li>A per-region population cap limits total hostiles, and creatures beyond 128 m despawn.</li>
+    <li>Spawn attempts run on a fixed tick with a fixed number of tries, so the rate is predictable.</li>
+  </ul>
+  <p>The consequence is the one that matters: lighting your base stops spawns there, and lighting a cave makes it safe. That rule is learnable, and players already know it.</p>
+
+  <h3>Behaviour, elevated</h3>
+  <p>Where Minecraft mobs walk straight at you, these run a perception model and a state machine. Perception combines a sight cone modulated by the gameplay light level at your position and by whether you are sneaking, hearing with a radius that grows when you sprint or mine, and for some creatures scent, which persists in a decaying trail so they can track where you went.</p>
+  <p>States run idle, suspicious, searching, combat, and fleeing. A creature that loses you searches your last known position and the places you might have gone, rather than instantly forgetting. Pack creatures share alert state, flank, and will not all attack at once.</p>
+
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Creature</th><th>Where</th><th>Senses by</th><th>Behaviour</th></tr></thead>
+      <tbody>
+        <tr><td><b>Husk</b></td><td>Night surface</td><td>Sight, hearing</td><td>The baseline. Slow, relentless, dangerous in groups. Burns at dawn.</td></tr>
+        <tr><td><b>Bonewalker</b></td><td>Night, ruins</td><td>Sight</td><td>Archer. Keeps distance, leads its shots, retreats when closed on.</td></tr>
+        <tr><td><b>Deep Stalker</b></td><td>Caves below &minus;40 m</td><td><b>Hearing only</b></td><td>Blind. Ignores you entirely if you sneak. Sprinting or mining brings it.</td></tr>
+        <tr><td><b>Gloomweaver</b></td><td>Caves, ruins</td><td>Sight, vibration</td><td>Climbs walls and ceilings, drops on you, webs the floor.</td></tr>
+        <tr><td><b>Bloater</b></td><td>Anywhere dark</td><td>Sight</td><td>The creeper role. Approaches quietly and detonates, carving real terrain.</td></tr>
+        <tr><td><b>Rift Warden</b></td><td>Rare, any darkness</td><td>Gaze</td><td>Neutral until looked at directly. Then it teleports and pursues.</td></tr>
+        <tr><td><b>Ashfiend</b><span class="chip new">Nether</span></td><td>Nether wastes</td><td>Heat</td><td>Ranged fire. Immune to burning, vulnerable to water.</td></tr>
+        <tr><td><b>Molten Colossus</b><span class="chip new">Nether</span></td><td>Fortresses</td><td>Sight, tremor</td><td>Boss. Armoured shell that must be broken before damage lands.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Damage model</h3>
+  <p>Damage carries a type: slashing, piercing, blunt, fire, frost, or shock. Armour resists each differently, so a skeleton is weak to blunt and a plated creature resists slashing. This gives weapon choice a reason to exist beyond a single damage number, and it gives the Nether a clean identity, since almost everything there is fire-immune and water becomes a weapon.</p>
+</section>
+
+<!-- ══ 15 ══ -->
+<section class="part" id="p15">
+  <div class="part-head"><span class="part-num">15</span><h2 class="disp">The Nether</h2></div>
+  <p class="standfirst">A second world with its own generator, reached the way you expect, and hostile in a way that follows directly from the light rules already in place.</p>
+
+  <h3>Getting there</h3>
+  <p>Build a rectangular frame of obsidian, anywhere from 4&times;5 to 23&times;23, and light it. The portal fills with a shifting surface and activates after a short delay. Standing in it for four seconds transports you.</p>
+  <p>Coordinates compress 8 to 1, so a kilometre walked in the Nether is eight kilometres in the overworld. That is Minecraft's rule and it exists for a good reason: it turns the hell dimension into fast travel, which is what makes players willing to go there repeatedly. Linking finds the nearest existing portal within a search radius in the destination, and builds one if there is none.</p>
+
+  <h3>Why it is hostile, mechanically</h3>
+  <div class="note key">
+    <h4>One rule does all the work</h4>
+    <p>The Nether has no sky, so the gameplay sky-light value is zero everywhere. Every spawn rule in <a href="#p14">&sect;14</a> then applies without modification, and hostiles spawn anywhere not lit by something you brought or by lava. Nothing special had to be written. The dimension is dangerous because the existing rule says it is, which is exactly the kind of consequence a well-chosen rule produces.</p>
+  </div>
+
+  <h3>Generation</h3>
+  <p>The generator is the same pipeline from <a href="#p04">&sect;04</a> with different inputs. A solid ceiling at 128 m and a floor at 0. The density field is dominated by cave noise rather than by a height field, producing vast interconnected caverns instead of a surface. Lava seas fill below level 32. Biomes are ash wastes, crimson fungal forest, warped fungal forest, soul sand valley, and basalt delta, blended by the same weight system.</p>
+  <p>Fortresses generate on the jittered grid as large structures of dark brick spanning lava seas, and they are the only source of several tier-4 materials.</p>
+
+  <h3>How it looks</h3>
+  <p>Lava is the primary light source, which the ray-traced global illumination handles naturally and which the rasterised fallback approximates with emissive probes. Dense volumetric ash fog gives depth and limits sight lines. Heat shimmer distorts the air above lava. The colour grade pushes hard toward red and orange with the blue channel crushed, so returning to the overworld feels like relief. Ambient audio is a low continuous roar that never fully stops.</p>
+</section>
+
+<!-- ══ 16 ══ -->
+<section class="part" id="p16">
+  <div class="part-head"><span class="part-num">16</span><h2 class="disp">Time, weather, seasons</h2></div>
+  <p class="standfirst">The clock that drives spawning, farming, and the look of every frame.</p>
+
+  <h3>The day</h3>
+  <p>A full day is 20 real minutes, matching Minecraft, split into 10 minutes of day, about 1.5 minutes each of dawn and dusk, and 7 minutes of night. The sun follows a real path with declination varying by season, so its arc and its height change through the year rather than tracing the same line daily.</p>
+  <p>Sky light in the gameplay grid scales with sun elevation, crossing the spawning threshold shortly after sunset. That is the moment the world becomes dangerous, and it is signposted by the light going amber, the fog thickening, and the ambient audio changing.</p>
+
+  <h3>Weather</h3>
+  <p>Weather is a field, not a global switch, so rain can genuinely be falling a kilometre away while you stand in sun. Fronts move across the world driven by a slow-moving noise field advected by a prevailing wind. Rain wets surfaces through the shader layer from <a href="#p07">&sect;07</a>, fills soil moisture, and puts out fires. Snow accumulates on upward-facing surfaces above the freezing line and melts as temperature rises. Thunderstorms darken the sky enough to let hostiles survive daylight, which is a Minecraft rule worth keeping because it makes a storm an event rather than a filter.</p>
+
+  <h3>Seasons</h3>
+  <p>Each season runs 28 in-game days. Temperature shifts, day length shifts, the snow line moves up and down the mountains, foliage colour ramps shift through the year, and crop growth rates change with the season factor from <a href="#p12">&sect;12</a>. Seasons are what make a farm require planning across a year instead of running as a perpetual machine, and they cost very little beyond a global phase value everything reads.</p>
+</section>
+
+<!-- ══ 17 ══ -->
+<section class="part" id="p17">
+  <div class="part-head"><span class="part-num">17</span><h2 class="disp">Commands and the console</h2></div>
+  <p class="standfirst">Built early, not late, because it is the fastest debugging tool the project will have.</p>
+
+  <h3>Parser</h3>
+  <p>A command is a tree of typed argument nodes, in the style of Minecraft's Brigadier. Each node declares its type, which gives parsing, validation, error positions, and tab completion from one definition. Commands declare a permission level, which matters the moment a second player exists.</p>
+
+  <h3>Target selectors</h3>
+<pre><code>@p  nearest player      @s  self
+@a  all players         @e  all entities
+@r  random player
+
+<span class="c">// filtered, and the filters compose:</span>
+@e[type=husk, distance=..20, limit=5, sort=nearest]
+@e[type=!player, y=-60, dy=40, nbt={onFire:true}]
+</code></pre>
+
+  <h3>The commands</h3>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th class="mono">Command</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">/give /clear /enchant</td><td>Inventory manipulation</td></tr>
+        <tr><td class="mono">/tp /spawnpoint /locate</td><td>Movement and finding structures or biomes</td></tr>
+        <tr><td class="mono">/time /weather /season</td><td>Set or query the world clock and sky</td></tr>
+        <tr><td class="mono">/gamemode /difficulty /gamerule</td><td>Session rules</td></tr>
+        <tr><td class="mono">/summon /kill /effect</td><td>Entity control</td></tr>
+        <tr><td class="mono">/carve /fill /smooth /paint</td><td><span class="chip new">New</span> SDF brush operations on terrain, the replacement for <code>/setblock</code></td></tr>
+        <tr><td class="mono">/place /demolish</td><td>Structure part operations, the building-layer twin of the above</td></tr>
+        <tr><td class="mono">/seed /worldinfo</td><td>Report the seed and the generation fields at a position</td></tr>
+        <tr><td class="mono">/light /soil /support</td><td><span class="chip new">New</span> Read back the simulated fields at a position. The core debugging tools.</td></tr>
+        <tr><td class="mono">/debug</td><td>Toggle chunk borders, LOD colouring, collision, AI state, profiler overlay</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The three read-back commands deserve emphasis. Pillar four says every simulated field must be visible to the player; <code>/light</code>, <code>/soil</code>, and <code>/support</code> are how a developer verifies that the field actually holds what the visuals imply. They will be used constantly.</p>
+</section>
+
+<!-- ══ 18 ══ -->
+<section class="part" id="p18">
+  <div class="part-head"><span class="part-num">18</span><h2 class="disp">Persistence</h2></div>
+  <p class="standfirst">Because generation is deterministic, the save file only has to remember what the player changed.</p>
+
+  <h3>The idea</h3>
+  <p>When a chunk is loaded, the generator reproduces it from the seed. The save file then applies a stored list of edits on top. A chunk the player has never touched occupies zero bytes. An explored but unmodified world of many square kilometres is a save file of a few hundred kilobytes, which is the whole payoff of the determinism rule in <a href="#p03">&sect;03</a>.</p>
+
+  <h3>Layout</h3>
+<pre><code>world/
+  level.dat          seed, spawn, time, season, gamerules, version
+  players/&lt;uuid&gt;.dat inventory, position, stats
+  region/
+    r.0.0.0.scr      one region = 32³ chunks = 512 m cube
+  nether/region/     same structure, separate dimension
+  structures.dat     placed building parts, indexed by region
+</code></pre>
+  <p>A region file holds a header table of chunk offsets followed by LZ4-compressed payloads. A chunk payload stores only a sparse list of voxel deltas, the soil records, the light emitters, the entities, and the structure part instances. Writes are journalled: the new region is written beside the old and renamed on completion, so a crash mid-save cannot corrupt the world.</p>
+
+  <h3>Versioning</h3>
+  <p>Every save records the generator version. If a world generated under an older version is opened after the generator has changed, terrain outside the player's edits would silently shift. The rule is therefore that the generator version is pinned per world: an old world keeps running its original generator, and only new worlds get the new one. This costs keeping old generator code around, and it is the only honest way to avoid destroying people's worlds with an update.</p>
+</section>
+
+<!-- ══ 19 ══ -->
+<section class="part" id="p19">
+  <div class="part-head"><span class="part-num">19</span><h2 class="disp">Audio</h2></div>
+  <p class="standfirst">Half the atmosphere, and the system most often deferred until it is too late to do properly.</p>
+  <p>Audio runs through OpenAL via Silk.NET with a small mixer above it. Sounds are positional with distance attenuation and occlusion tested against the density field, so a creature behind rock is muffled rather than clear.</p>
+  <p>Reverb is chosen by probing the space around the listener with a handful of rays: a tight cave gives a short dense reverb, a large cavern gives a long one, open ground gives almost none. The transition as you walk into a cave mouth is done by interpolating between the two, and it is one of the strongest signals the game has for conveying space.</p>
+  <p>Footsteps select from the material under the player, which the terrain material field already provides for free. Ambient beds change with biome, depth, and time of day. Deep underground adds occasional distant sounds with no source, which is the cheapest and most effective tension the game can produce.</p>
+</section>
+
+<!-- ══ 20 ══ -->
+<section class="part" id="p20">
+  <div class="part-head"><span class="part-num">20</span><h2 class="disp">Roadmap</h2></div>
+  <p class="standfirst">Ordered so that each milestone proves something risky and produces something playable. Every one ends with a specific thing that either works or does not.</p>
+
+  <ul class="rail">
+    <li>
+      <div class="m-id">M0</div>
+      <div class="m-t">Window, device, triangle</div>
+      <div class="m-d">Solution scaffold, Vulkan 1.3 instance with dynamic rendering and bindless enabled, swapchain, Shaderc integrated into the build, a triangle on screen, and a frame-time readout.</div>
+      <div class="m-p"><b>Proof:</b> a coloured triangle at a stable 60 fps, with the shader hot-reloading when the file is saved.</div>
+    </li>
+    <li>
+      <div class="m-id">M1</div>
+      <div class="m-t">Density field to triangles</div>
+      <div class="m-d">Seed splitting, the noise library, the first three landform fields, the CPU surface-nets mesher, and one chunk rendered with flat shading. Golden-hash determinism tests from the start.</div>
+      <div class="m-p"><b>Proof:</b> the same seed produces a byte-identical mesh on two runs, and the terrain visibly has an overhang.</div>
+    </li>
+    <li>
+      <div class="m-id">M2</div>
+      <div class="m-t">Walking on it</div>
+      <div class="m-d">Capsule controller sphere-traced against the field, camera, input, step-up, slopes, gravity, mantling. BepuPhysics restored and proven. Chunk streaming around the player.</div>
+      <div class="m-p"><b>Proof:</b> walk a kilometre in any direction without falling through the world or waiting for terrain.</div>
+    </li>
+    <li>
+      <div class="m-id">M3</div>
+      <div class="m-t">Mining and placing <span class="chip new">Slice</span></div>
+      <div class="m-d">Brush subtract and add on the density field, incremental remeshing of the affected chunk, tool tiers and hardness, the volume-to-items conversion, and a basic inventory.</div>
+      <div class="m-p"><b>Proof:</b> dig a tunnel into a hillside at interactive speed with no frame hitch, then fill it back in.</div>
+    </li>
+    <li>
+      <div class="m-id">M4</div>
+      <div class="m-t">Light, both kinds <span class="chip new">Slice</span></div>
+      <div class="m-d">The gameplay light grid with incremental flood fill. Day and night cycle. Torches. Ray-traced sun shadows and the irradiance probe grid, with the rasterised fallback built at the same time, not after.</div>
+      <div class="m-p"><b>Proof:</b> the vertical slice is complete. Dig a cave at dusk and need a torch to see, with the torch also stopping spawns once M7 lands.</div>
+    </li>
+    <li>
+      <div class="m-id">M5</div>
+      <div class="m-t">Materials that look real</div>
+      <div class="m-d">TextureForge with the node graph evaluator, the first eight material recipes, triplanar projection with stochastic tiling, macro variation, and the wetness and snow runtime layers.</div>
+      <div class="m-p"><b>Proof:</b> a screenshot of a cliff face where no tiling is visible at any distance.</div>
+    </li>
+    <li>
+      <div class="m-id">M6</div>
+      <div class="m-t">A world worth exploring</div>
+      <div class="m-d">The full eleven-stage generator: climate, blended biomes, all three cave families, aquifers, strata, ore veins, vegetation scatter. GPU meshing, the LOD octree, transvoxel seams.</div>
+      <div class="m-p"><b>Proof:</b> stand on a peak and see coherent terrain to a six-kilometre horizon at 60 fps.</div>
+    </li>
+    <li>
+      <div class="m-id">M7</div>
+      <div class="m-t">It fights back</div>
+      <div class="m-d">The entity system, spawn rules reading the gameplay light grid, perception and the state machine, the first four creatures, combat with damage types, health and stamina.</div>
+      <div class="m-p"><b>Proof:</b> night is genuinely dangerous, and lighting a base reliably stops it.</div>
+    </li>
+    <li>
+      <div class="m-id">M8</div>
+      <div class="m-t">Building and surviving</div>
+      <div class="m-d">Modular parts with socket snapping, the structural support simulation and collapse, crafting stations, the full tier progression, farming with soil state and crop rotation, livestock.</div>
+      <div class="m-p"><b>Proof:</b> a full loop from bare hands to an iron-tooled base with a working farm.</div>
+    </li>
+    <li>
+      <div class="m-id">M9</div>
+      <div class="m-t">The Nether</div>
+      <div class="m-d">The second dimension with its own generator and biomes, portals with linking and coordinate compression, Nether creatures, fortresses, tier-4 materials, and the heat-and-ash look.</div>
+      <div class="m-p"><b>Proof:</b> build a portal, survive a trip, come back with something you could not get at home.</div>
+    </li>
+    <li>
+      <div class="m-id">M10</div>
+      <div class="m-t">Polish, and the transport swap</div>
+      <div class="m-d">Weather fronts, seasons, audio with SDF occlusion and probed reverb, the full command set, save versioning, settings, and finally replacing the in-process message channel with a socket.</div>
+      <div class="m-p"><b>Proof:</b> two clients in one world, with the game code unchanged.</div>
+    </li>
+  </ul>
+
+  <div class="note">
+    <h4>An honest word on scale</h4>
+    <p>This is a large project. M0 through M4 is the vertical slice and is a realistic near-term target. M6 and M7 are each substantial on their own. M8 through M10 is the content and breadth phase, which is where projects of this kind usually stall, because the engineering is finished and what remains is volume. The plan is sequenced so that there is something playable and worth showing from M3 onward, which is the best defence against that.</p>
+  </div>
+</section>
+
+<section class="part" id="open">
+  <div class="part-head"><span class="part-num">&mdash;&mdash;</span><h2 class="disp">Still open</h2></div>
+  <p class="standfirst">Four decisions deliberately left undecided, because none of them blocks M0 and all of them are better made with something running.</p>
+  <ol>
+    <li><b>Combat depth.</b> Whether attacks are directional with blocking and parrying in the Skyrim mould, or a simpler swing-and-cooldown. This changes animation requirements enormously and is best judged once movement feels right, around M7.</li>
+    <li><b>Magic.</b> Whether enchanting is a stat modifier applied at a station, or a full spell system with its own progression. The tier table in <a href="#p13">&sect;13</a> currently assumes the former.</li>
+    <li><b>Art direction target.</b> Grounded and naturalistic, or stylised and heightened. The renderer supports both; the material recipes in <a href="#p07">&sect;07</a> lean naturalistic and would be retuned rather than rewritten. Decide at M5, looking at real screenshots.</li>
+    <li><b>Third dimension.</b> Whether anything corresponding to the End exists, and what the game's ending is, if it has one at all.</li>
+  </ol>
+</section>
+
+</main>
+
+<footer class="end">
+  <div class="wrap">
+    <p>SakritCraft master technical plan, revision 1. Every environment figure in <a href="#p00">&sect;00</a> was measured on the target machine on 14 September 2026. Next action is M0.</p>
+  </div>
+</footer>

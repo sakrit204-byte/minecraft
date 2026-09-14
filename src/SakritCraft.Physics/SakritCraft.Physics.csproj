@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SakritCraft.Core\SakritCraft.Core.csproj" />
+    <ProjectReference Include="..\SakritCraft.World\SakritCraft.World.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepuPhysics" Version="2.4.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
