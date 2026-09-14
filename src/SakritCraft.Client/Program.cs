@@ -34,6 +34,10 @@ string seedText = "sakrit";
 int regionChunks = 20;
 bool startWireframe = false;
 double centreX = 0.0, centreZ = 0.0;
+double startTime = 0.515;
+string? screenshotPath = null;
+double screenshotAt = 5.0;
+bool screenshotTaken = false;
 double[]? cameraOverride = null;
 
 for (int i = 0; i < args.Length; i++)
@@ -80,6 +84,15 @@ for (int i = 0; i < args.Length; i++)
             centreZ = double.Parse(parts[1], CultureInfo.InvariantCulture);
             break;
         }
+        case "--time" when i + 1 < args.Length:
+            startTime = Math.Clamp(double.Parse(args[++i], CultureInfo.InvariantCulture), 0.0, 0.999);
+            break;
+        case "--screenshot" when i + 1 < args.Length:
+            screenshotPath = args[++i];
+            break;
+        case "--screenshot-at" when i + 1 < args.Length:
+            screenshotAt = double.Parse(args[++i], CultureInfo.InvariantCulture);
+            break;
         case "--camera" when i + 1 < args.Length:
             cameraOverride = args[++i].Split(',').Select(v => double.Parse(v, CultureInfo.InvariantCulture)).ToArray();
             if (cameraOverride.Length != 5)
@@ -110,6 +123,7 @@ var windowOptions = WindowOptions.DefaultVulkan with
 var window = Window.Create(windowOptions);
 Renderer? renderer = null;
 FlyCameraController? controller = null;
+SakritCraft.Client.GameSession? session = null;
 int exitCode = 0;
 var runClock = Stopwatch.StartNew();
 long lastFrameTicks = 0;
@@ -142,6 +156,9 @@ window.Load += () =>
             renderer.Camera.Yaw = (float)(cameraOverride[3] * Math.PI / 180.0);
             renderer.Camera.Pitch = (float)(cameraOverride[4] * Math.PI / 180.0);
         }
+
+        session = new SakritCraft.Client.GameSession(
+            renderer.TerrainField, seed, renderer.Camera.Position, startTime);
 
         controller = new FlyCameraController(renderer.Camera, window.CreateInput(), startWireframe);
         lastFrameTicks = runClock.ElapsedTicks;
@@ -176,6 +193,14 @@ window.Render += _ =>
             renderer.Wireframe = controller.WireframeRequested;
         }
 
+        if (session is not null)
+        {
+            session.Update(dt, renderer.Camera.Position);
+            session.ApplyLighting(renderer.Lighting);
+            session.Populate(renderer.EntityBatch, renderer.Camera);
+            renderer.StatusLine = session.Status();
+        }
+
         renderer.RenderFrame();
     }
     catch (Exception ex)
@@ -184,6 +209,12 @@ window.Render += _ =>
         exitCode = 1;
         window.Close();
         return;
+    }
+
+    if (screenshotPath is not null && !screenshotTaken && runClock.Elapsed.TotalSeconds >= screenshotAt)
+    {
+        renderer.RequestScreenshot(screenshotPath);
+        screenshotTaken = true;
     }
 
     if (exitAfter is double limit && runClock.Elapsed.TotalSeconds >= limit)

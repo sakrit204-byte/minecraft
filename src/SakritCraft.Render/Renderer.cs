@@ -108,6 +108,35 @@ public sealed unsafe class Renderer : IDisposable
 
     private readonly SakritCraft.Render.Terrain.TerrainStreamer _streamer;
     private readonly SakritCraft.Render.Water.WaterRenderer _water;
+    private readonly SakritCraft.Render.Entities.EntityRenderer _entities;
+
+    /// <summary>
+    /// This frame's entity boxes. The caller fills it before <see cref="RenderFrame"/>, which is
+    /// how the simulation reaches the screen without the renderer ever referencing the simulation.
+    /// </summary>
+    public SakritCraft.Render.Entities.EntityRenderer EntityBatch => _entities;
+
+    /// <summary>The generator the terrain is streamed from, so callers can share one instance
+    /// rather than building a second with the same seed.</summary>
+    public SakritCraft.World.Generation.DensityField TerrainField => _terrain.Field;
+
+    /// <summary>Extra text for the window title, set by whatever owns the game state.</summary>
+    public string StatusLine { get; set; } = string.Empty;
+
+    private string? _screenshotPath;
+    private GpuBuffer? _screenshotBuffer;
+    private ulong _screenshotAwaits;
+    private Extent2D _screenshotExtent;
+
+    /// <summary>
+    /// Saves the next rendered frame to a PNG.
+    /// <para>
+    /// Capturing from inside the engine rather than off the desktop, because capturing the
+    /// screen depends on the game window being focused and unobscured, and anything that steals
+    /// focus silently produces a screenshot of something else entirely.
+    /// </para>
+    /// </summary>
+    public void RequestScreenshot(string path) => _screenshotPath = path;
 
     /// <summary>Cached so the cascade loop allocates no closure per frame.</summary>
     private readonly Action<CommandBuffer, System.Numerics.Matrix4x4, Pipeline> _drawShadowCasters;
@@ -226,6 +255,9 @@ public sealed unsafe class Renderer : IDisposable
 
         _water = new SakritCraft.Render.Water.WaterRenderer(
             _device, _pipelines, _heap, _sky.ColorFormat, _depthFormat);
+
+        _entities = new SakritCraft.Render.Entities.EntityRenderer(
+            _device, _pipelines, _heap, _allocator, _sky.ColorFormat, _depthFormat, options.FramesInFlight);
 
         _shadows = new SakritCraft.Render.Shadows.ShadowRenderer(
             _device, _allocator, _heap, _pipelines, options.ShadowMapResolution, options.FramesInFlight);
@@ -359,6 +391,7 @@ public sealed unsafe class Renderer : IDisposable
         vk.GetSemaphoreCounterValue(_device.Device, _timeline, &completed).Check("vkGetSemaphoreCounterValue");
         _deletions.Collect(completed);
         _terrain.CollectFrees(completed);
+        TryWriteScreenshot();
     }
 
     private void WriteFrameConstants(FrameContext frame)
@@ -498,6 +531,10 @@ public sealed unsafe class Renderer : IDisposable
         _terrain.Draw(cmd, Camera, frameHandle, Wireframe, ref _stats);
         _device.EndLabel(cmd);
 
+        // Entities before water, so a creature standing in the shallows is occluded by the
+        // surface rather than drawn over it; the depth test does the rest.
+        _entities.Draw(cmd, frameHandle, frame.Index);
+
         if (!Wireframe)
         {
             _water.Draw(cmd, frameHandle, Camera.Position.Y, (float)_clock.Elapsed.TotalSeconds);
@@ -511,6 +548,11 @@ public sealed unsafe class Renderer : IDisposable
         _device.EndLabel(cmd);
 
         vk.CmdEndRendering(cmd);
+
+        if (_screenshotPath is not null && _screenshotAwaits == 0)
+        {
+            RecordScreenshotCopy(cmd, image, extent);
+        }
 
         // Colour attachment -> present. BOTTOM_OF_PIPE with no access is the canonical "hand to WSI".
         TransitionSwapchainImage(cmd, image,
@@ -624,9 +666,85 @@ public sealed unsafe class Renderer : IDisposable
                        $"geometry {RenderStats.FormatBytes(_stats.GeometryBytes)} | vram {RenderStats.FormatBytes(_stats.VramUsedBytes)} / {RenderStats.FormatBytes(_stats.VramReservedBytes)}";
         string camera = $"cam ({Camera.Position.X:F1}, {Camera.Position.Y:F1}, {Camera.Position.Z:F1}) yaw {Camera.Yaw * 180 / MathF.PI:F1} pitch {Camera.Pitch * 180 / MathF.PI:F1}";
         RenderLog.Info("frame", timingReport + " | " + scene + " | " + camera);
+        string status = StatusLine.Length > 0 ? $"  |  {StatusLine}" : string.Empty;
         _window.Title = $"{_titleBase}  |  {_timing.Fps:F0} fps  |  {RenderStats.FormatTriangles(_stats.TrianglesDrawn)} tris  |  " +
-                        $"{_stats.ChunksDrawn}/{_stats.ChunksResident} chunks  |  vram {RenderStats.FormatBytes(_stats.VramUsedBytes)}  |  " +
-                        $"{_swapchain.Extent.Width}x{_swapchain.Extent.Height}  |  reloads {_pipelines.HotReloadCount}";
+                        $"{_stats.ChunksDrawn}/{_stats.ChunksResident} chunks  |  {_entities.DrawnLastFrame} entities{status}";
+    }
+
+    /// <summary>Copies the finished colour image into a host-visible buffer, leaving the image in
+    /// the layout the present transition expects.</summary>
+    private void RecordScreenshotCopy(CommandBuffer cmd, Image image, Extent2D extent)
+    {
+        ulong required = (ulong)extent.Width * extent.Height * 4;
+        if (_screenshotBuffer is null || _screenshotBuffer.Size < required)
+        {
+            _screenshotBuffer?.Dispose();
+            _screenshotBuffer = new GpuBuffer(_device, _allocator, required,
+                BufferUsageFlags.TransferDstBit, MemoryUsage.Staging, "Capture.Screenshot");
+        }
+
+        TransitionSwapchainImage(cmd, image,
+            ImageLayout.ColorAttachmentOptimal, ImageLayout.TransferSrcOptimal,
+            PipelineStageFlags2.ColorAttachmentOutputBit, AccessFlags2.ColorAttachmentWriteBit,
+            PipelineStageFlags2.CopyBit, AccessFlags2.TransferReadBit);
+
+        var region = new BufferImageCopy
+        {
+            BufferOffset = 0,
+            BufferRowLength = 0,
+            BufferImageHeight = 0,
+            ImageSubresource = new ImageSubresourceLayers(ImageAspectFlags.ColorBit, 0, 0, 1),
+            ImageOffset = new Offset3D(0, 0, 0),
+            ImageExtent = new Extent3D(extent.Width, extent.Height, 1),
+        };
+        _device.Vk.CmdCopyImageToBuffer(cmd, image, ImageLayout.TransferSrcOptimal,
+            _screenshotBuffer.Handle, 1, &region);
+
+        TransitionSwapchainImage(cmd, image,
+            ImageLayout.TransferSrcOptimal, ImageLayout.ColorAttachmentOptimal,
+            PipelineStageFlags2.CopyBit, AccessFlags2.TransferReadBit,
+            PipelineStageFlags2.ColorAttachmentOutputBit, AccessFlags2.ColorAttachmentWriteBit);
+
+        _screenshotExtent = extent;
+        _screenshotAwaits = _timelineValue + 1;   // the value this frame's submission will signal
+    }
+
+    /// <summary>Writes the captured frame once the GPU has finished with it.</summary>
+    private void TryWriteScreenshot()
+    {
+        if (_screenshotAwaits == 0 || _screenshotBuffer is null || _screenshotPath is null) return;
+
+        ulong completed = 0;
+        _device.Vk.GetSemaphoreCounterValue(_device.Device, _timeline, &completed)
+            .Check("vkGetSemaphoreCounterValue(screenshot)");
+        if (completed < _screenshotAwaits) return;
+
+        int width = (int)_screenshotExtent.Width, height = (int)_screenshotExtent.Height;
+        var rgba = new byte[width * height * 4];
+        Span<byte> source = _screenshotBuffer.Mapped;
+
+        // The swapchain is B8G8R8A8; PNG wants R first. Alpha is forced opaque because the
+        // surface may carry whatever the compositor left there.
+        for (int i = 0; i < width * height; i++)
+        {
+            rgba[i * 4 + 0] = source[i * 4 + 2];
+            rgba[i * 4 + 1] = source[i * 4 + 1];
+            rgba[i * 4 + 2] = source[i * 4 + 0];
+            rgba[i * 4 + 3] = 255;
+        }
+
+        try
+        {
+            Capture.PngWriter.WriteRgba(_screenshotPath, width, height, rgba);
+            RenderLog.Info(Tag, $"Screenshot written to {_screenshotPath} ({width}x{height}).");
+        }
+        catch (IOException e)
+        {
+            RenderLog.Warn(Tag, $"Could not write the screenshot: {e.Message}");
+        }
+
+        _screenshotPath = null;
+        _screenshotAwaits = 0;
     }
 
     // ---- Resources -------------------------------------------------------------------------------
@@ -745,6 +863,8 @@ public sealed unsafe class Renderer : IDisposable
         _compiler.Dispose();
 
         _terrain.Dispose();        // stops workers, frees geometry pools
+        _screenshotBuffer?.Dispose();
+        _entities.Dispose();
         _shadows.Dispose();
         _materials.Dispose();
         _heap.Free(_defaultTextureHandle);
