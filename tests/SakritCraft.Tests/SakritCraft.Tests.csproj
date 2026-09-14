@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\SakritCraft.Mesh\SakritCraft.Mesh.csproj" />
     <ProjectReference Include="..\..\src\SakritCraft.Physics\SakritCraft.Physics.csproj" />
     <ProjectReference Include="..\..\src\SakritCraft.Content\SakritCraft.Content.csproj" />
+    <ProjectReference Include="..\..\src\SakritCraft.Sim\SakritCraft.Sim.csproj" />
   </ItemGroup>
 
 </Project>

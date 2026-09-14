@@ -17,16 +17,21 @@ The full technical design is in [`docs/MASTER-PLAN.html`](docs/MASTER-PLAN.html)
 |---|---|
 | M0 · Vulkan renderer foundation | Complete |
 | M1 · Seed to triangles | Complete |
-| M2 · Walking on it | Physics complete, renderer in progress |
+| M2 · Walking on it | Complete |
 | M3 · Mining and placing | Not started |
-| M4 · Light, both kinds | Not started |
+| M4 · Light, both kinds | Gameplay light complete, visual light complete |
+| M7 · It fights back | Simulation complete, not yet rendered |
 
 Running now: a deterministic world generator, a surface-nets mesher, a capsule character
-controller colliding against the density field, and a Vulkan 1.3 renderer drawing
-streamed terrain chunks at 60 fps.
+controller colliding against the density field, a Vulkan 1.3 renderer drawing streamed
+terrain and sea out to eight kilometres at 60 fps with procedural materials and cascaded
+shadows, and a twenty-hertz authoritative simulation with creatures, spawning, combat,
+hunger, death and respawn, item drops, deterministic settlement placement, and modular
+building with structural collapse.
 
-Not yet built: mining, materials and textures, the gameplay light grid, creatures,
-building, farming, the Nether.
+Not yet built: mining, farming, crafting stations, the Nether, vegetation, and rendering
+for creatures and built parts. The simulation runs headless; nothing in it is on screen
+yet.
 
 ## Building
 
