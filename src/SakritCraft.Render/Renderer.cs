@@ -107,6 +107,7 @@ public sealed unsafe class Renderer : IDisposable
     private readonly SakritCraft.Render.Shadows.ShadowRenderer _shadows;
 
     private readonly SakritCraft.Render.Terrain.TerrainStreamer _streamer;
+    private readonly SakritCraft.Render.Water.WaterRenderer _water;
 
     /// <summary>Cached so the cascade loop allocates no closure per frame.</summary>
     private readonly Action<CommandBuffer, System.Numerics.Matrix4x4, Pipeline> _drawShadowCasters;
@@ -222,6 +223,9 @@ public sealed unsafe class Renderer : IDisposable
 
         _materials = new SakritCraft.Render.Textures.TerrainMaterialTextures(
             _device, _allocator, _heap, _uploader, options.MaterialTextureResolution, options.CacheDirectory);
+
+        _water = new SakritCraft.Render.Water.WaterRenderer(
+            _device, _pipelines, _heap, _sky.ColorFormat, _depthFormat);
 
         _shadows = new SakritCraft.Render.Shadows.ShadowRenderer(
             _device, _allocator, _heap, _pipelines, options.ShadowMapResolution, options.FramesInFlight);
@@ -493,6 +497,11 @@ public sealed unsafe class Renderer : IDisposable
         }
         _terrain.Draw(cmd, Camera, frameHandle, Wireframe, ref _stats);
         _device.EndLabel(cmd);
+
+        if (!Wireframe)
+        {
+            _water.Draw(cmd, frameHandle, Camera.Position.Y, (float)_clock.Elapsed.TotalSeconds);
+        }
 
         fixed (byte* label = _labelSky)
         {
