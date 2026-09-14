@@ -20,6 +20,17 @@
 layout(set = SAKRIT_BINDLESS_SET, binding = SAKRIT_BINDING_SAMPLED_IMAGES) uniform texture2D g_Textures[];
 layout(set = SAKRIT_BINDLESS_SET, binding = SAKRIT_BINDING_SAMPLERS)       uniform sampler   g_Samplers[];
 
+// Layered images alias the same binding. The descriptor type is unchanged
+// (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE); only the GLSL view of it differs, which is legal and is the
+// same trick the storage-buffer macros below use. A handle registered from a 2D-array image view is
+// valid here and invalid in g_Textures, and vice versa.
+layout(set = SAKRIT_BINDLESS_SET, binding = SAKRIT_BINDING_SAMPLED_IMAGES) uniform texture2DArray g_TextureArrays[];
+
+// Comparison samplers alias the sampler binding for the same reason: VK_DESCRIPTOR_TYPE_SAMPLER
+// covers both, and only the GLSL type differs. A handle registered from a sampler created with
+// compareEnable belongs here and nowhere else.
+layout(set = SAKRIT_BINDLESS_SET, binding = SAKRIT_BINDING_SAMPLERS) uniform samplerShadow g_SamplersShadow[];
+
 // Storage buffers are declared at the use site because a GLSL buffer block needs a body. Several
 // blocks with different layouts may alias binding 2; each is indexed by the handle of a buffer that
 // was written with the matching layout. `scalar` layout matches C# StructLayout.Sequential exactly.

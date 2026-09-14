@@ -15,9 +15,14 @@ public sealed record GraphicsPipelineDesc
     /// <summary>Vertex shader path relative to the shader root, e.g. "triangle.vert".</summary>
     public required string VertexShader { get; init; }
     /// <summary>Fragment shader path relative to the shader root.</summary>
-    public required string FragmentShader { get; init; }
+    /// <summary>
+    /// Fragment shader file, or empty for a depth-only pipeline. A shadow pass writes nothing but
+    /// depth, so it needs no fragment stage and no colour attachment at all.
+    /// </summary>
+    public string FragmentShader { get; init; } = string.Empty;
     /// <summary>Format of the single colour attachment (dynamic rendering has no render pass to infer it from).</summary>
-    public required Format ColorFormat { get; init; }
+    /// <summary>Colour target format, or Undefined for a depth-only pipeline.</summary>
+    public Format ColorFormat { get; init; } = Format.Undefined;
     /// <summary>Depth attachment format, or Undefined for no depth.</summary>
     public Format DepthFormat { get; init; } = Format.Undefined;
     public PrimitiveTopology Topology { get; init; } = PrimitiveTopology.TriangleList;
@@ -29,6 +34,14 @@ public sealed record GraphicsPipelineDesc
     public bool DepthWrite { get; init; }
     /// <summary>Reverse-Z by default: a floating-point depth buffer keeps far more precision that way.</summary>
     public CompareOp DepthCompare { get; init; } = CompareOp.GreaterOrEqual;
+
+    /// <summary>Constant depth bias, in units of the depth buffer's smallest resolvable step.
+    /// Shadow passes use this to push geometry away from the light and stop it shadowing itself.</summary>
+    public float DepthBiasConstant { get; init; }
+
+    /// <summary>Depth bias proportional to the slope, which is what handles grazing light angles
+    /// where a constant bias is either useless or peels the shadow away from the caster.</summary>
+    public float DepthBiasSlope { get; init; }
 }
 
 /// <summary>

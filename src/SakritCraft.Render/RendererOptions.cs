@@ -59,6 +59,22 @@ public sealed class RendererOptions
     /// <summary>How often the frame-timing readout updates the window title and console, in seconds.</summary>
     public double TimingReportInterval { get; init; } = 0.5;
 
+    /// <summary>
+    /// Edge length of each terrain material texture. Every material is baked at this
+    /// size for base colour, normal and packed surface properties, so the cost is
+    /// roughly 24 bytes per texel across the whole set.
+    /// </summary>
+    public int MaterialTextureResolution { get; init; } = 512;
+
+    /// <summary>Where baked textures and the pipeline cache are kept between runs.</summary>
+    public string CacheDirectory { get; init; } = "artifacts";
+
+    /// <summary>
+    /// Edge length of each of the four sun shadow cascades. 2048 costs 32 MiB at 16-bit depth and
+    /// resolves roughly a five-centimetre feature in the nearest cascade.
+    /// </summary>
+    public uint ShadowMapResolution { get; init; } = 2048;
+
     internal void Validate()
     {
         if (FramesInFlight is < 2 or > 3)

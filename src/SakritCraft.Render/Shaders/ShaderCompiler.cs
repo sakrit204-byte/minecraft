@@ -21,6 +21,19 @@ public sealed class ShaderCompileResult
     /// <summary>Absolute paths of the source and every file it included, for hot-reload dependency tracking.</summary>
     public required string[] Dependencies { get; init; }
     public required TimeSpan Duration { get; init; }
+
+    /// <summary>A successful result carrying no code, for pipeline stages that are deliberately absent.</summary>
+    public static ShaderCompileResult Empty { get; } = new()
+    {
+        Success = true,
+        SourcePath = string.Empty,
+        Stage = ShaderStageFlags.All,
+        Spirv = Array.Empty<byte>(),
+        Log = string.Empty,
+        WarningCount = 0,
+        Dependencies = Array.Empty<string>(),
+        Duration = TimeSpan.Zero,
+    };
 }
 
 /// <summary>

@@ -1,5 +1,5 @@
 // Per-frame constants shared by every pass. Mirrors SakritCraft.Render.Frame.FrameConstants
-// (scalar layout, 208 bytes); edit both together. Reached through the bindless storage-buffer array
+// (scalar layout, 224 bytes); edit both together. Reached through the bindless storage-buffer array
 // with the handle carried in each pass's push constants.
 #ifndef SAKRIT_FRAME_GLSL
 #define SAKRIT_FRAME_GLSL
@@ -17,7 +17,10 @@ struct FrameConstants
     vec3  skyZenith;        float fogHeightFalloff;
     vec3  skyHorizon;       float exposure;
     vec3  groundAmbient;    float cameraHeight;   // absolute world Y of the camera, metres
-    vec3  cameraPosWrapped; float pad1;           // camera position modulo 1024 m, for periodic surface patterns
+    vec3  cameraPosWrapped;                       // camera position modulo 1024 m, for periodic surface patterns
+    uint  materialAlbedo;   uint  materialNormal; // bindless handles of the terrain material arrays
+    uint  materialOrm;      uint  materialSampler;
+    uint  shadowConstants;
 };
 
 SAKRIT_STORAGE_BUFFER(FrameBuffer, { FrameConstants frame; });

@@ -460,6 +460,49 @@ public sealed unsafe class TerrainRenderer : IDisposable
         }
     }
 
+    /// <summary>
+    /// Records the same chunks into a depth-only pass using a light projection instead of the
+    /// camera's. Culling uses the light frustum, which is why a cascade covering ground behind the
+    /// player still draws the mountain that shadows it.
+    /// </summary>
+    public void DrawDepth(CommandBuffer cmd, Camera camera, in Matrix4x4 lightViewProj, Pipeline pipeline)
+    {
+        var vk = _device.Vk;
+        vk.CmdBindPipeline(cmd, PipelineBindPoint.Graphics, pipeline);
+
+        var frustum = new Frustum(lightViewProj);
+        var push = new SakritCraft.Render.Shadows.ShadowPushConstants { LightViewProj = lightViewProj };
+        int boundIndexPool = -1;
+
+        for (int i = 0; i < _all.Count; i++)
+        {
+            var chunk = _all[i];
+            if (chunk.State != ChunkState.Resident)
+            {
+                continue;
+            }
+
+            var offset = camera.RelativeTo(chunk.Origin);
+            if (!frustum.Intersects(offset + chunk.BoundsMin, offset + chunk.BoundsMax))
+            {
+                continue;
+            }
+
+            if (chunk.Indices.PoolIndex != boundIndexPool)
+            {
+                boundIndexPool = chunk.Indices.PoolIndex;
+                vk.CmdBindIndexBuffer(cmd, _indexPool.BufferOf(boundIndexPool), 0, IndexType.Uint32);
+            }
+
+            push.VertexBuffer = _vertexPool.HandleOf(chunk.Vertices.PoolIndex).Index;
+            push.ChunkOffset = offset;
+            vk.CmdPushConstants(cmd, _heap.PipelineLayout, ShaderStageFlags.All, 0,
+                (uint)sizeof(SakritCraft.Render.Shadows.ShadowPushConstants), &push);
+            vk.CmdDrawIndexed(cmd, chunk.IndexCount, 1, (uint)(chunk.Indices.Offset / IndexStride),
+                (int)(chunk.Vertices.Offset / VertexStride), 0);
+        }
+    }
+
     public void FillStats(ref RenderStats stats)
     {
         stats.ChunksResident = _residentCount;

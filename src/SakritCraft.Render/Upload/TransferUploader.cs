@@ -320,6 +320,80 @@ public sealed unsafe class TransferUploader : IDisposable
     /// whole image from UNDEFINED to TRANSFER_DST first and to <paramref name="finalLayout"/> as part of
     /// the ownership release. The image must not have been used before (UNDEFINED discards content).
     /// </summary>
+    /// <summary>
+    /// Fills an entire image, every mip level and every array layer, from one staged
+    /// allocation.
+    /// <para>
+    /// This exists because <see cref="CopyToImage"/> transitions the image's full range
+    /// out of <see cref="ImageLayout.Undefined"/> on every call, and that layout
+    /// discards contents. Calling it once per mip level therefore throws away each
+    /// level as the next one starts, leaving only the last. A mipped image has to be
+    /// uploaded under a single barrier, so the regions are batched here instead.
+    /// </para>
+    /// <para>
+    /// Each region's <c>BufferOffset</c> is relative to the start of the staging slice;
+    /// the slice's own offset is added here so callers can lay their data out from zero.
+    /// </para>
+    /// </summary>
+    public ulong CopyToImageRegions(in StagingSlice src, GpuImage dst, ReadOnlySpan<BufferImageCopy> regions,
+                                    ImageLayout finalLayout, PipelineStageFlags2 dstStages, AccessFlags2 dstAccess)
+    {
+        EnsureBatchOpen();
+        if (regions.Length == 0)
+        {
+            throw new ArgumentException("At least one copy region is required.", nameof(regions));
+        }
+
+        var cmd = EnsureRecording();
+        var vk = _device.Vk;
+
+        var toTransfer = new ImageMemoryBarrier2
+        {
+            SType = StructureType.ImageMemoryBarrier2,
+            SrcStageMask = PipelineStageFlags2.None,
+            SrcAccessMask = AccessFlags2.None,
+            DstStageMask = PipelineStageFlags2.CopyBit,
+            DstAccessMask = AccessFlags2.TransferWriteBit,
+            OldLayout = ImageLayout.Undefined,
+            NewLayout = ImageLayout.TransferDstOptimal,
+            SrcQueueFamilyIndex = Vk.QueueFamilyIgnored,
+            DstQueueFamilyIndex = Vk.QueueFamilyIgnored,
+            Image = dst.Handle,
+            SubresourceRange = dst.FullRange,
+        };
+        var dep = new DependencyInfo
+        {
+            SType = StructureType.DependencyInfo,
+            ImageMemoryBarrierCount = 1,
+            PImageMemoryBarriers = &toTransfer,
+        };
+        vk.CmdPipelineBarrier2(cmd, &dep);
+
+        var shifted = new BufferImageCopy[regions.Length];
+        for (int i = 0; i < regions.Length; i++)
+        {
+            shifted[i] = regions[i];
+            shifted[i].BufferOffset += src.Offset;
+        }
+
+        fixed (BufferImageCopy* p = shifted)
+        {
+            vk.CmdCopyBufferToImage(cmd, _staging.Handle, dst.Handle,
+                ImageLayout.TransferDstOptimal, (uint)shifted.Length, p);
+        }
+
+        _batchImages.Add(new PendingImage
+        {
+            Image = dst.Handle,
+            Range = dst.FullRange,
+            FinalLayout = finalLayout,
+            DstStages = dstStages,
+            DstAccess = dstAccess,
+        });
+        BytesUploaded += src.Size;
+        return _timelineValue + 1;
+    }
+
     public ulong CopyToImage(in StagingSlice src, GpuImage dst, uint mipLevel, ImageLayout finalLayout, PipelineStageFlags2 dstStages, AccessFlags2 dstAccess)
     {
         EnsureBatchOpen();

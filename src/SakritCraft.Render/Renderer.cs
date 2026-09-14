@@ -24,17 +24,27 @@ namespace SakritCraft.Render;
 public sealed class SceneLighting
 {
     /// <summary>Sun elevation above the horizon, degrees. Low enough that slopes read as slopes.</summary>
-    public float SunElevationDegrees = 27.0f;
-    /// <summary>Sun azimuth, degrees clockwise from -Z (the camera's yaw-0 forward). Side light gives relief without shadows.</summary>
-    public float SunAzimuthDegrees = 250.0f;
-    public float SunIntensity = 3.2f;
-    public Vector3 SunColor = new(1.0f, 0.93f, 0.82f);
-    public Vector3 SkyZenith = new(0.14f, 0.31f, 0.72f);
+    public float SunElevationDegrees = 17.0f;
+    /// <summary>Sun azimuth, degrees clockwise from -Z (the camera's yaw-0 forward). Raking side light
+    /// throws long shadows across slopes, which is what makes terrain form legible.</summary>
+    public float SunAzimuthDegrees = 285.0f;
+    /// <summary>
+    /// Sun irradiance. The shading model divides albedo by pi for energy conservation, so this has
+    /// to be roughly pi times a naive Lambert intensity to land at the same brightness.
+    /// </summary>
+    public float SunIntensity = 9.5f;
+    public Vector3 SunColor = new(1.0f, 0.88f, 0.70f);
+    public Vector3 SkyZenith = new(0.11f, 0.26f, 0.64f);
     public Vector3 SkyHorizon = new(0.66f, 0.74f, 0.86f);
-    public Vector3 GroundAmbient = new(0.20f, 0.17f, 0.13f);
+    public Vector3 GroundAmbient = new(0.26f, 0.22f, 0.17f);
     /// <summary>Extinction per metre. 0.0016 puts the 50% fog line around 430 m: clear-day aerial perspective.</summary>
-    public float FogDensity = 0.0016f;
-    public float FogHeightFalloff = 1.0f / 90.0f;
+    /// <summary>
+    /// Extinction per metre. At the previous 0.0016 a clear day lost 80% of its contrast by one
+    /// kilometre, which flattened every distant hill into the sky. This gives visibility of several
+    /// kilometres while still separating near ridges from far ones.
+    /// </summary>
+    public float FogDensity = 0.00019f;
+    public float FogHeightFalloff = 1.0f / 420.0f;
     public float Exposure = 0.9f;
 
     public Vector3 SunDirection
@@ -93,6 +103,11 @@ public sealed unsafe class Renderer : IDisposable
     private readonly BindlessHandle[] _frameConstantHandles;
     private readonly GpuImage _defaultTexture;
     private readonly BindlessHandle _defaultTextureHandle;
+    private readonly SakritCraft.Render.Textures.TerrainMaterialTextures _materials;
+    private readonly SakritCraft.Render.Shadows.ShadowRenderer _shadows;
+
+    /// <summary>Cached so the cascade loop allocates no closure per frame.</summary>
+    private readonly Action<CommandBuffer, System.Numerics.Matrix4x4, Pipeline> _drawShadowCasters;
     private readonly TerrainRenderer _terrain;
     private readonly SkyPass _sky;
     private readonly FrameTiming _timing;
@@ -202,6 +217,13 @@ public sealed unsafe class Renderer : IDisposable
         });
         _defaultTextureHandle = _heap.RegisterSampledImage(_defaultTexture.View, ImageLayout.ShaderReadOnlyOptimal);
         UploadDefaultTexture();
+
+        _materials = new SakritCraft.Render.Textures.TerrainMaterialTextures(
+            _device, _allocator, _heap, _uploader, options.MaterialTextureResolution, options.CacheDirectory);
+
+        _shadows = new SakritCraft.Render.Shadows.ShadowRenderer(
+            _device, _allocator, _heap, _pipelines, options.ShadowMapResolution, options.FramesInFlight);
+        _drawShadowCasters = (c, matrix, pipeline) => _terrain.DrawDepth(c, Camera, matrix, pipeline);
 
         PlaceCameraAtStart();
         int queued = _terrain.RequestStartupRegion(Camera.Position);
@@ -346,6 +368,11 @@ public sealed unsafe class Renderer : IDisposable
             (float)Wrap(Camera.Position.X, FrameConstants.PatternPeriod),
             (float)Wrap(Camera.Position.Y, FrameConstants.PatternPeriod),
             (float)Wrap(Camera.Position.Z, FrameConstants.PatternPeriod));
+        fc.MaterialAlbedo = _materials.AlbedoHandle.Index;
+        fc.MaterialNormal = _materials.NormalHandle.Index;
+        fc.MaterialOrm = _materials.OrmHandle.Index;
+        fc.MaterialSampler = _materials.SamplerHandle.Index;
+        fc.ShadowConstants = _shadows.ConstantsHandle(frame.Index);
 
         _frameConstantBuffers[frame.Index].Write(MemoryMarshal.CreateReadOnlySpan(ref fc, 1));
     }
@@ -370,6 +397,15 @@ public sealed unsafe class Renderer : IDisposable
 
         WriteFrameConstants(frame);
         uint frameHandle = _frameConstantHandles[frame.Index].Index;
+
+        // The bindless set has to be bound before the shadow pass, not just before the main one: the
+        // cascade vertex shader pulls geometry through the same descriptor arrays, and drawing with
+        // no set bound is undefined behaviour that shows up as a GPU hang, not a validation error.
+        _heap.Bind(cmd, PipelineBindPoint.Graphics);
+
+        // Cascades first: the main pass samples them, so every layer has to be rendered and
+        // transitioned to a shader-read layout before any lighting happens.
+        _shadows.Render(cmd, Camera, Lighting.SunDirection, frame.Index, _drawShadowCasters);
 
         // Undefined -> colour attachment. The acquire semaphore (waited at COLOR_ATTACHMENT_OUTPUT) is the
         // execution dependency on the presentation engine; the barrier is the layout transition.
@@ -619,11 +655,11 @@ public sealed unsafe class Renderer : IDisposable
             }
         }
 
-        // Eye level a little above the local ground, so ridges cut the horizon instead of lying flat
-        // below the camera.
-        Camera.Position = new Vector3D<double>(x, surface + 22.0, z);
+        // Player eye level, not a survey helicopter. Standing on the ground is the view the game is
+        // actually judged on: it shows surface detail and the landscape beyond it at the same time.
+        Camera.Position = new Vector3D<double>(x, surface + 2.6, z);
         Camera.Yaw = (float)Math.Atan2(bestX - x, -(bestZ - z));
-        Camera.Pitch = -12.0f * MathF.PI / 180.0f;
+        Camera.Pitch = -5.0f * MathF.PI / 180.0f;
     }
 
     private void RecreateSwapchain()
@@ -684,6 +720,8 @@ public sealed unsafe class Renderer : IDisposable
         _compiler.Dispose();
 
         _terrain.Dispose();        // stops workers, frees geometry pools
+        _shadows.Dispose();
+        _materials.Dispose();
         _heap.Free(_defaultTextureHandle);
         _defaultTexture.Dispose();
         for (int i = 0; i < _frameConstantBuffers.Length; i++)

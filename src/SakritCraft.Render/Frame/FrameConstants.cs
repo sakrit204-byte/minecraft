@@ -12,7 +12,7 @@ namespace SakritCraft.Render.Frame;
 /// The camera position is deliberately absent: geometry is camera-relative, so the camera is at the
 /// origin and a fragment's distance is simply the length of its position.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Size = 208)]
+[StructLayout(LayoutKind.Sequential, Size = 224)]
 public struct FrameConstants
 {
     /// <summary>View-projection as System.Numerics lays it out; GLSL reads the same bytes as the column-major mat4 it needs (see Camera.ViewProjectionForGpu).</summary>
@@ -43,7 +43,17 @@ public struct FrameConstants
     /// from the origin) at the cost of repeating every period, which the hash makes seamless.
     /// </summary>
     public Vector3 CameraPositionWrapped;
-    public float Pad1;
+
+    /// <summary>Bindless handle of the terrain base-colour array. See TerrainMaterialTextures.</summary>
+    public uint MaterialAlbedo;
+    /// <summary>Bindless handle of the terrain tangent-space normal array.</summary>
+    public uint MaterialNormal;
+    /// <summary>Bindless handle of the terrain occlusion/roughness/metalness array.</summary>
+    public uint MaterialOrm;
+    /// <summary>Bindless handle of the anisotropic repeat sampler the three arrays share.</summary>
+    public uint MaterialSampler;
+    /// <summary>Bindless handle of this frame's ShadowConstants storage buffer.</summary>
+    public uint ShadowConstants;
 
     /// <summary>Period of shader-side surface patterns in metres; mirrors PATTERN_PERIOD in shaders/include/surface.glsl.</summary>
     public const double PatternPeriod = 1024.0;

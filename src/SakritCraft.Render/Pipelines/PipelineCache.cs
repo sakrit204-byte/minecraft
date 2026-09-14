@@ -179,7 +179,7 @@ public sealed unsafe class PipelineCache : IDisposable
     {
         foreach (var pipeline in _pipelines)
         {
-            if (pipeline.Desc.ColorFormat == colorFormat)
+            if (pipeline.Desc.ColorFormat == Format.Undefined || pipeline.Desc.ColorFormat == colorFormat)
             {
                 continue;
             }
@@ -243,8 +243,9 @@ public sealed unsafe class PipelineCache : IDisposable
     private BuildResult Build(GraphicsPipeline target, GraphicsPipelineDesc desc)
     {
         var sw = Stopwatch.StartNew();
+        bool depthOnly = string.IsNullOrEmpty(desc.FragmentShader);
         var vs = _compiler.Compile(desc.VertexShader);
-        var fs = _compiler.Compile(desc.FragmentShader);
+        var fs = depthOnly ? ShaderCompileResult.Empty : _compiler.Compile(desc.FragmentShader);
 
         var deps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var d in vs.Dependencies) deps.Add(d);
@@ -252,14 +253,14 @@ public sealed unsafe class PipelineCache : IDisposable
         var depArray = deps.ToArray();
 
         string log = JoinLogs(vs, fs);
-        if (!vs.Success || !fs.Success)
+        if (!vs.Success || (!depthOnly && !fs.Success))
         {
             return new BuildResult { Target = target, Desc = desc, Success = false, Handle = default, Dependencies = depArray, Log = log, Duration = sw.Elapsed };
         }
 
         var vk = _device.Vk;
         ShaderModule vsModule = CreateModule(vs.Spirv, desc.Name + ".vert");
-        ShaderModule fsModule = CreateModule(fs.Spirv, desc.Name + ".frag");
+        ShaderModule fsModule = depthOnly ? default : CreateModule(fs.Spirv, desc.Name + ".frag");
         byte* entry = (byte*)SilkMarshal.StringToPtr("main");
         try
         {
@@ -302,7 +303,9 @@ public sealed unsafe class PipelineCache : IDisposable
                 LineWidth = 1.0f,
                 DepthClampEnable = false,
                 RasterizerDiscardEnable = false,
-                DepthBiasEnable = false,
+                DepthBiasEnable = desc.DepthBiasConstant != 0.0f || desc.DepthBiasSlope != 0.0f,
+                DepthBiasConstantFactor = desc.DepthBiasConstant,
+                DepthBiasSlopeFactor = desc.DepthBiasSlope,
             };
             var multisample = new PipelineMultisampleStateCreateInfo
             {
@@ -330,8 +333,8 @@ public sealed unsafe class PipelineCache : IDisposable
             var blend = new PipelineColorBlendStateCreateInfo
             {
                 SType = StructureType.PipelineColorBlendStateCreateInfo,
-                AttachmentCount = 1,
-                PAttachments = &blendAttachment,
+                AttachmentCount = depthOnly ? 0u : 1u,
+                PAttachments = depthOnly ? null : &blendAttachment,
             };
             var dynamicStates = stackalloc DynamicState[] { DynamicState.Viewport, DynamicState.Scissor };
             var dynamic = new PipelineDynamicStateCreateInfo
@@ -344,8 +347,8 @@ public sealed unsafe class PipelineCache : IDisposable
             var rendering = new PipelineRenderingCreateInfo
             {
                 SType = StructureType.PipelineRenderingCreateInfo,
-                ColorAttachmentCount = 1,
-                PColorAttachmentFormats = &colorFormat,
+                ColorAttachmentCount = depthOnly ? 0u : 1u,
+                PColorAttachmentFormats = depthOnly ? null : &colorFormat,
                 DepthAttachmentFormat = desc.DepthFormat,
                 StencilAttachmentFormat = Format.Undefined,
             };
@@ -353,7 +356,7 @@ public sealed unsafe class PipelineCache : IDisposable
             {
                 SType = StructureType.GraphicsPipelineCreateInfo,
                 PNext = &rendering,
-                StageCount = 2,
+                StageCount = depthOnly ? 1u : 2u,
                 PStages = stages,
                 PVertexInputState = &vertexInput,
                 PInputAssemblyState = &inputAssembly,
@@ -375,7 +378,7 @@ public sealed unsafe class PipelineCache : IDisposable
         {
             SilkMarshal.Free((nint)entry);
             vk.DestroyShaderModule(_device.Device, vsModule, null);
-            vk.DestroyShaderModule(_device.Device, fsModule, null);
+            if (fsModule.Handle != 0) vk.DestroyShaderModule(_device.Device, fsModule, null);
         }
     }
 

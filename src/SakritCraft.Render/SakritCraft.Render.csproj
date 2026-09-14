@@ -4,6 +4,7 @@
     <ProjectReference Include="..\SakritCraft.Core\SakritCraft.Core.csproj" />
     <ProjectReference Include="..\SakritCraft.World\SakritCraft.World.csproj" />
     <ProjectReference Include="..\SakritCraft.Mesh\SakritCraft.Mesh.csproj" />
+    <ProjectReference Include="..\SakritCraft.Content\SakritCraft.Content.csproj" />
   </ItemGroup>
 
   <ItemGroup>
