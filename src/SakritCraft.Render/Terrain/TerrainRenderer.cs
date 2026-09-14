@@ -114,6 +114,7 @@ public sealed unsafe class TerrainRenderer : IDisposable
     private readonly Queue<ChunkRecord> _uploading = new(256);
     private readonly Queue<ChunkJobResult> _deferredResults = new(16);
     private readonly List<DeferredFree> _deferredFrees = new(64);
+    private readonly List<ChunkCoord> _rebuildScratch = new(64);
     private int _residentCount;
     private int _emptyCount;
     private bool _disposed;
@@ -184,6 +185,52 @@ public sealed unsafe class TerrainRenderer : IDisposable
     /// <paramref name="retireAfter"/>, the last submission that may draw it. This is the hook dynamic
     /// streaming will call as chunks leave the octree.
     /// </summary>
+    /// <summary>
+    /// Rebuilds every resident chunk a sphere touches, at every level of detail.
+    /// <para>
+    /// A terrain edit changes the density field, and a chunk's mesh is only a cached view of
+    /// that field, so the cache has to be dropped. Release then re-request is the whole of it:
+    /// generation re-reads the field, which now includes the edit, and the geometry pool
+    /// recovers the old allocation once the GPU is finished with it.
+    /// </para>
+    /// <para>
+    /// Coarse levels are rebuilt too, so a tunnel does not close up again as it recedes into
+    /// the distance.
+    /// </para>
+    /// </summary>
+    public int RebuildSphere(double x, double y, double z, double radius, ulong retireAfter)
+    {
+        _rebuildScratch.Clear();
+
+        foreach (var pair in _chunks)
+        {
+            ChunkCoord coord = pair.Key;
+            double size = coord.Size;
+            double minX = coord.X * size, minY = coord.Y * size, minZ = coord.Z * size;
+
+            // Nearest point of the chunk box to the sphere centre.
+            double nx = Math.Clamp(x, minX, minX + size);
+            double ny = Math.Clamp(y, minY, minY + size);
+            double nz = Math.Clamp(z, minZ, minZ + size);
+            double dx = x - nx, dy = y - ny, dz = z - nz;
+
+            // One extra sample of slack, because the mesher reads a padded volume and an edit
+            // just outside the box still moves the vertices on its boundary.
+            double reach = radius + coord.Spacing * 2.0;
+            if (dx * dx + dy * dy + dz * dz <= reach * reach) _rebuildScratch.Add(coord);
+        }
+
+        foreach (ChunkCoord coord in _rebuildScratch)
+        {
+            if (!_chunks.TryGetValue(coord, out var record)) continue;
+            if (record.State != ChunkState.Resident) continue;   // in flight; it will pick the edit up
+            Release(coord, retireAfter);
+            Request(coord);
+        }
+
+        return _rebuildScratch.Count;
+    }
+
     /// <summary>Whether this chunk is already requested, generating, uploading or resident.</summary>
     public bool IsKnown(ChunkCoord coord) => _chunks.ContainsKey(coord);
 

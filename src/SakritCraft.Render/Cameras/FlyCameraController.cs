@@ -41,6 +41,13 @@ public sealed class FlyCameraController : IDisposable
     /// <summary>Set by F1 (toggle); read by the renderer for the wireframe debug view.</summary>
     public bool WireframeRequested { get; private set; }
 
+    /// <summary>Left mouse held: mine. Only meaningful once the mouse is captured, so that
+    /// the click which captures it does not also take a bite out of the ground.</summary>
+    public bool Mining => _captured && _mouse is not null && _mouse.IsButtonPressed(MouseButton.Left);
+
+    /// <summary>Right mouse held: place.</summary>
+    public bool Placing => _captured && _mouse is not null && _mouse.IsButtonPressed(MouseButton.Right);
+
     public FlyCameraController(Camera camera, IInputContext input, bool wireframe = false)
     {
         _camera = camera;

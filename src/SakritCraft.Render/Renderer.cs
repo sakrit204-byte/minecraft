@@ -138,6 +138,13 @@ public sealed unsafe class Renderer : IDisposable
     /// </summary>
     public void RequestScreenshot(string path) => _screenshotPath = path;
 
+    /// <summary>
+    /// Rebuilds the terrain meshes a sphere touches, after something changed the density field.
+    /// Returns how many chunks were dropped and requeued.
+    /// </summary>
+    public int RebuildTerrainSphere(double x, double y, double z, double radius)
+        => _terrain.RebuildSphere(x, y, z, radius, _timelineValue);
+
     /// <summary>Cached so the cascade loop allocates no closure per frame.</summary>
     private readonly Action<CommandBuffer, System.Numerics.Matrix4x4, Pipeline> _drawShadowCasters;
     private readonly TerrainRenderer _terrain;

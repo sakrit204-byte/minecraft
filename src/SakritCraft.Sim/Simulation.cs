@@ -25,6 +25,9 @@ public enum SimEventKind : byte
     ItemPickedUp,
     Exploded,
     PlayerRespawned,
+    /// <summary>Terrain was carved or filled. Value is the brush radius; the renderer rebuilds
+    /// every chunk the sphere touches.</summary>
+    TerrainEdited,
 }
 
 /// <summary>
@@ -60,6 +63,23 @@ public sealed partial class Simulation
 
     /// <summary>What happened during the most recent tick. Cleared at the start of each one.</summary>
     public IReadOnlyList<SimEvent> Events => _events;
+
+    /// <summary>
+    /// Terrain changes awaiting a mesh rebuild.
+    /// <para>
+    /// Kept separately from <see cref="Events"/>, which is cleared at the start of every tick.
+    /// Carving can happen between ticks, from input, and an edit published only as a tick event
+    /// is thrown away before anyone reads it: the rock is gone from the field and the drops
+    /// appear, but the mesh still shows solid ground. This list survives until the renderer has
+    /// acted on it.
+    /// </para>
+    /// </summary>
+    public IReadOnlyList<(Vec3d Centre, double Radius)> PendingTerrainEdits => _pendingTerrainEdits;
+
+    private readonly List<(Vec3d Centre, double Radius)> _pendingTerrainEdits = new();
+
+    /// <summary>Called once the renderer has rebuilt the affected chunks.</summary>
+    public void ClearPendingTerrainEdits() => _pendingTerrainEdits.Clear();
 
     /// <summary>Every living player, for spawning and despawn distance checks.</summary>
     public IReadOnlyList<Entity> Players => _players;

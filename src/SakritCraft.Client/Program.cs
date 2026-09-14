@@ -35,6 +35,8 @@ int regionChunks = 20;
 bool startWireframe = false;
 double centreX = 0.0, centreZ = 0.0;
 double startTime = 0.515;
+bool digDemo = false;
+bool digDone = false;
 string? screenshotPath = null;
 double screenshotAt = 5.0;
 bool screenshotTaken = false;
@@ -84,6 +86,9 @@ for (int i = 0; i < args.Length; i++)
             centreZ = double.Parse(parts[1], CultureInfo.InvariantCulture);
             break;
         }
+        case "--dig-demo":
+            digDemo = true;
+            break;
         case "--time" when i + 1 < args.Length:
             startTime = Math.Clamp(double.Parse(args[++i], CultureInfo.InvariantCulture), 0.0, 0.999);
             break;
@@ -195,7 +200,22 @@ window.Render += _ =>
 
         if (session is not null)
         {
+            if (controller is not null)
+            {
+                session.Interact(dt, renderer.Camera, controller.Mining, controller.Placing);
+            }
+
             session.Update(dt, renderer.Camera.Position);
+
+            if (session.TerrainEdits.Count > 0)
+            {
+                foreach ((var centre, double radius) in session.TerrainEdits)
+                {
+                    renderer.RebuildTerrainSphere(centre.X, centre.Y, centre.Z, radius);
+                }
+                session.ClearTerrainEdits();
+            }
+
             session.ApplyLighting(renderer.Lighting);
             session.Populate(renderer.EntityBatch, renderer.Camera);
             renderer.StatusLine = session.Status();
@@ -209,6 +229,21 @@ window.Render += _ =>
         exitCode = 1;
         window.Close();
         return;
+    }
+
+    if (digDemo && !digDone && session is not null && runClock.Elapsed.TotalSeconds >= screenshotAt - 3.0)
+    {
+        int carved = session.DigDemoTunnel(renderer.Camera);
+
+        // Step back and up so the mouth of the tunnel is in frame rather than around the camera.
+        var back = renderer.Camera.Forward;
+        renderer.Camera.Position = new Vector3D<double>(
+            renderer.Camera.Position.X - back.X * 16.0,
+            renderer.Camera.Position.Y - back.Y * 16.0 + 4.0,
+            renderer.Camera.Position.Z - back.Z * 16.0);
+
+        RenderLog.Info("client", $"--dig-demo carved {carved} bores into the hillside.");
+        digDone = true;
     }
 
     if (screenshotPath is not null && !screenshotTaken && runClock.Elapsed.TotalSeconds >= screenshotAt)

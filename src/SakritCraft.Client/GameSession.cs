@@ -29,6 +29,13 @@ public sealed class GameSession
     private readonly Simulation _simulation;
     private readonly Entity _player;
     private readonly StructurePlacer _structures;
+    private readonly List<(Vec3d Centre, double Radius)> _terrainEdits = new();
+
+    /// <summary>Terrain changes made since the last drain, for the renderer to rebuild.</summary>
+    public IReadOnlyList<(Vec3d Centre, double Radius)> TerrainEdits => _terrainEdits;
+
+    /// <summary>What the last swing achieved, for the crosshair readout.</summary>
+    public MiningState Mining { get; private set; } = MiningState.Miss;
 
     public Simulation Simulation => _simulation;
 
@@ -48,7 +55,82 @@ public sealed class GameSession
         // effect rather than an empty daylit field. Zero is dawn, a quarter is midday.
         _simulation.Clock.SetDayFraction(startTime);
 
+        // A starter kit. Mining is gated on tool tier, so with empty hands the world is
+        // literally unbreakable and nothing about the system is visible.
+        Inventory pack = _simulation.InventoryOf(_player);
+        pack.Add(ItemIds.IronPickaxe, 1);
+        pack.Add(ItemIds.StoneShovel, 1);
+        pack.Add(ItemIds.IronSword, 1);
+        pack.Add(ItemIds.Torch, 32);
+        pack.Add(ItemIds.Bread, 8);
+
         PopulateSettlements(spawn);
+    }
+
+    /// <summary>
+    /// Runs a swing, if one is being held. Mining and placing are the same operation with the
+    /// sign flipped, which is exactly what the density field makes possible: there is no block
+    /// to remove or add, only a sphere subtracted from or unioned with a scalar field.
+    /// </summary>
+    public void Interact(double dt, Camera camera, bool mining, bool placing)
+    {
+        if (!mining && !placing)
+        {
+            Mining = MiningState.Miss;
+            return;
+        }
+
+        var origin = new Vec3d(camera.Position.X, camera.Position.Y, camera.Position.Z);
+        Vector3 forward = camera.Forward;
+        var direction = new Vec3d(forward.X, forward.Y, forward.Z);
+
+        if (mining)
+        {
+            Mining = _simulation.Mine(_player, origin, direction, dt);
+            return;
+        }
+
+        // Placing: put material back a little outside the surface, so it builds outward rather
+        // than filling in the rock that is already there.
+        MiningState aim = _simulation.Mine(_player, origin, direction, 0.0);
+        if (!aim.Hit) { Mining = MiningState.Miss; return; }
+
+        Inventory pack = _simulation.InventoryOf(_player);
+        foreach (ushort candidate in new[] { ItemIds.Stone, ItemIds.Soil, ItemIds.Sand, ItemIds.Gravel })
+        {
+            if (!pack.Has(candidate, 1)) continue;
+            byte material = Simulation.MaterialFor(candidate);
+            const double radius = 0.42;
+            _simulation.Fill(aim.Point + aim.Normal * (radius * 0.5), radius, material, _player);
+            break;
+        }
+
+        Mining = aim;
+    }
+
+    /// <summary>Clears the pending terrain edits once the renderer has acted on them.</summary>
+    public void ClearTerrainEdits() => _terrainEdits.Clear();
+
+    /// <summary>
+    /// Drives a tunnel into whatever the camera is facing, for verifying that carving, remeshing
+    /// and collision all agree without a person holding the mouse button.
+    /// </summary>
+    public int DigDemoTunnel(Camera camera, double length = 14.0, double radius = 1.4)
+    {
+        var origin = new Vec3d(camera.Position.X, camera.Position.Y, camera.Position.Z);
+        Vector3 forward = camera.Forward;
+        var direction = new Vec3d(forward.X, forward.Y, forward.Z).Normalised;
+
+        int carved = 0;
+        // Step by roughly half the brush so the bores overlap into one continuous passage
+        // rather than a string of beads.
+        for (double t = 0.0; t <= length; t += radius * 0.55)
+        {
+            Vec3d centre = origin + direction * (2.0 + t);
+            _simulation.Carve(centre, radius, SakritCraft.World.Generation.TerrainMaterials.Rock, _player);
+            carved++;
+        }
+        return carved;
     }
 
     /// <summary>
@@ -105,6 +187,12 @@ public sealed class GameSession
         }
 
         _simulation.Advance(dt);
+
+        // Terrain edits are read from the simulation's durable list rather than from this tick's
+        // events, because carving happens on input between ticks and a tick clears its own events
+        // before anyone downstream could see them.
+        _terrainEdits.AddRange(_simulation.PendingTerrainEdits);
+        _simulation.ClearPendingTerrainEdits();
     }
 
     /// <summary>Fills the renderer's instance list from the simulation.</summary>
@@ -254,8 +342,14 @@ public sealed class GameSession
             ? _simulation.Light.Effective(transform.Position + new Vec3d(0, 1.0, 0))
             : 0;
 
+        string aim = Mining.Blocked.Length > 0
+            ? $" | {Mining.Blocked}"
+            : Mining.Hit
+                ? $" | mining {SakritCraft.World.Generation.TerrainMaterials.Name(Mining.Material)} {Mining.Progress * 100:F0}%"
+                : string.Empty;
+
         return string.Create(CultureInfo.InvariantCulture,
             $"{_simulation.Clock} | light {light,2} | hp {hp,4:F1} food {food,4:F1} | " +
-            $"{hostiles} hostile {wildlife} wild {neutral} folk");
+            $"{hostiles} hostile {wildlife} wild {neutral} folk{aim}");
     }
 }

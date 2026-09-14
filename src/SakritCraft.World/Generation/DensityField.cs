@@ -1,3 +1,4 @@
+using SakritCraft.World.Editing;
 using SakritCraft.World.Noise;
 using SakritCraft.World.Seed;
 
@@ -35,6 +36,13 @@ public sealed class DensityField
 
     public WorldSeed Seed { get; }
     public Dimension Dimension { get; }
+
+    /// <summary>
+    /// Everything the player has changed. Applied on top of the generated field by every sample,
+    /// which is what keeps the renderer, the physics and the mining code from ever disagreeing
+    /// about where the rock is: there is one answer and they all ask the same question.
+    /// </summary>
+    public TerrainEdits Edits { get; } = new();
 
     public DensityField(WorldSeed seed, Dimension dimension = Dimension.Overworld)
     {
@@ -87,7 +95,9 @@ public sealed class DensityField
         if (y >= WorldTop) return 64.0;
 
         double density = y - column.BaseHeight;
-        if (density > MaxDeformation) return density;
+        // The early-out still has to consult the edit layer: a player can build well above the
+        // height field, and skipping straight to "air" would make what they built disappear.
+        if (density > MaxDeformation) return Edits.Apply(density, x, y, z);
 
         // Overhangs survive to fairly coarse levels: they are tens of metres across and define the
         // silhouette of distant mountains, which is exactly what a far chunk is for.
@@ -116,10 +126,12 @@ public sealed class DensityField
         if (spacing <= 2.0)
         {
             double cavity = _caves.Distance(x, y, z, column.BaseHeight);
-            return Math.Max(density, -cavity);
+            density = Math.Max(density, -cavity);
         }
 
-        return density;
+        // Player edits apply at every level of detail, so a mined tunnel is still visible from a
+        // distance rather than closing up as the chunk coarsens.
+        return Edits.Apply(density, x, y, z);
     }
 
     public double SampleColumn(in ColumnSample column, double x, double y, double z)
@@ -134,7 +146,8 @@ public sealed class DensityField
 
         // Early out high in the sky. Nothing below can pull the field back to solid up
         // here, and skipping the 3D noise saves most of the cost of an airborne sample.
-        if (density > MaxDeformation) return density;
+        // Edits still apply: a player can build above the height field.
+        if (density > MaxDeformation) return Edits.Apply(density, x, y, z);
 
         // Stage 6. Three-dimensional deformation, scaled by how young the terrain is.
         // This is what turns a heightmap into something with overhangs and arches, and
@@ -165,7 +178,7 @@ public sealed class DensityField
         // field grows without bound with depth, so any fixed contribution stops
         // breaking through a few metres down.
         double cavity = _caves.Distance(x, y, z, column.BaseHeight);
-        return Math.Max(density, -cavity);
+        return Edits.Apply(Math.Max(density, -cavity), x, y, z);
     }
 
     /// <summary>

@@ -244,7 +244,7 @@ public sealed class ChunkGenerator : IDisposable
                     double d = _field.SampleColumnForSpacing(in column, wx, wy, wz, spacing);
                     volume[x, y, z] = (float)d;
                     if (d < 0.0) anySolid = true; else anyAir = true;
-                    volume.SetMaterial(x, y, z, MaterialFor(in column, wy, d, spacing));
+                    volume.SetMaterial(x, y, z, MaterialFor(in column, wx, wy, wz, spacing, _field));
                 }
             }
         }
@@ -259,34 +259,16 @@ public sealed class ChunkGenerator : IDisposable
     /// far below the height field stay rock so grass does not grow underground. The mesher takes the
     /// material of the solid corner of each crossing, so only solid samples matter.
     /// </summary>
-    private static byte MaterialFor(in ColumnSample column, double y, double density, double spacing)
+    /// <summary>
+    /// The material of a sample. Delegates to world generation so mining and meshing can never
+    /// disagree about what a piece of ground is made of, and lets a player's fill override the
+    /// generated answer.
+    /// </summary>
+    private static byte MaterialFor(in ColumnSample column, double x, double y, double z,
+                                    double spacing, DensityField field)
     {
-        // The mesher takes its material from the solid corner of a surface crossing, so every sample
-        // this value is ever read from is, by construction, immediately below a surface. There is
-        // therefore no need to ask how deep it is: a depth threshold measured in metres only ever
-        // reintroduces a dependence on the sample spacing, and neighbouring chunks at different
-        // levels of detail then disagree about the same ground and show as blocky patches.
-        //
-        // What still has to be asked is *which* surface. A crossing deep below the height field is a
-        // cave wall, and grass must not grow there. The allowance has to cover the overhang term,
-        // which moves the real surface by tens of metres in young mountains.
-        double belowHeightField = column.BaseHeight - y;
-        double surfaceReach = TerrainMaterial.SurfaceLayerReach
-                            + LandformFields.OverhangStrength(column.Erosion)
-                            + spacing * 2.0;
-
-        if (belowHeightField >= surfaceReach)
-        {
-            return TerrainMaterial.Rock;
-        }
-
-        if (column.TemperatureC <= TerrainMaterial.SnowTemperatureC) return TerrainMaterial.Snow;
-        if (y < LandformFields.SeaLevel + TerrainMaterial.BeachHeight) return TerrainMaterial.Sand;
-
-        // Soil, which the shader resolves into grass on gentle ground and bare earth on steep ground
-        // by slope. That test lives in the shader because slope is a property of the shaded fragment,
-        // not of the volume sample, and it is level-of-detail invariant.
-        return TerrainMaterial.Soil;
+        byte filled = field.Edits.MaterialAt(x, y, z);
+        return filled != TerrainMaterials.None ? filled : TerrainMaterials.MaterialFor(in column, y, spacing);
     }
 
     private static void ComputeBounds(ChunkJobResult result)
